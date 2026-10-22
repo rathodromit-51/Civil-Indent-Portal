@@ -1,0 +1,130 @@
+# Development stack. The app source in ./src is bind-mounted, so code changes show up immediately.
+#   docker compose up -d --build
+#   docker compose --profile tools --profile realtime --profile tunnel up -d   # optional services
+
+x-app-env: &app-env
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: ${DB_DATABASE:-app}
+  DB_USERNAME: root
+  DB_PASSWORD: ${DB_PASSWORD:-root_password}
+  REDIS_HOST: redis
+  AUTH_MODE: ${AUTH_MODE:-dev}
+  DEV_AUTH_PASSWORD: ${DEV_AUTH_PASSWORD:-secret123}
+
+services:
+  # Web app (Nginx + PHP-FPM)
+  app:
+    image: serversideup/php:${PHP_VERSION:-8.2}-fpm-nginx
+    container_name: ${PROJECT_NAME:-app}_app
+    ports:
+      - "${APP_PORT:-80}:8080"
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      <<: *app-env
+      WEBROOT: /var/www/html/public
+      PUID: 1000
+      PGID: 1000
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATION: "true"
+      AUTORUN_LARAVEL_MIGRATION_SEED: "true"
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
+      AUTORUN_LARAVEL_OPTIMIZE: "false"
+      AUTORUN_LARAVEL_CONFIG_CACHE: "false"
+      AUTORUN_LARAVEL_ROUTE_CACHE: "false"
+      PHP_OPCACHE_ENABLE: "1"
+      PHP_OPCACHE_MEMORY_CONSUMPTION: "256"
+      PHP_OPCACHE_MAX_ACCELERATED_FILES: "20000"
+      PHP_OPCACHE_REVALIDATE_FREQ: "0"
+    user: root
+    entrypoint: [ "sh", "-c", "chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache && exec docker-php-serversideup-entrypoint /init" ]
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+
+  # Queue worker (same code as app)
+  queue:
+    image: serversideup/php:${PHP_VERSION:-8.2}-fpm-nginx
+    container_name: ${PROJECT_NAME:-app}_queue
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    # The image health check looks for nginx/php-fpm, which this container does not run
+    healthcheck:
+      disable: true
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      <<: *app-env
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: ${PROJECT_NAME:-app}_mysql
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-app}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --skip-name-resolve
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: ${PROJECT_NAME:-app}_redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # --- Optional services (start with --profile <name>) ---
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${PROJECT_NAME:-app}_phpmyadmin
+    profiles: [tools]
+    ports:
+      - "${PMA_PORT:-8081}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_PASSWORD:-root_password}
+    depends_on:
+      - mysql
+    restart: unless-stopped
+
+  # WebSocket server for real-time events (Pusher protocol)
+  soketi:
+    image: quay.io/soketi/soketi:1.6-16-debian
+    container_name: ${PROJECT_NAME:-app}_soketi
+    profiles: [realtime]
+    ports:
+      - "${SOKETI_PORT:-6001}:6001"
+    environment:
+      SOKETI_DEFAULT_APP_ID: ${PUSHER_APP_ID:-app}
+      SOKETI_DEFAULT_APP_KEY: ${PUSHER_APP_KEY:-app-key}
+      SOKETI_DEFAULT_APP_SECRET: ${PUSHER_APP_SECRET:-app-secret}
+    restart: unless-stopped
+
+  # Cloudflare Tunnel. Add public hostnames in the Cloudflare dashboard (Tunnel > Public Hostname):
+  #   app.example.com   -> http://app:8080
+  #   ws.example.com    -> http://soketi:6001      (optional)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ${PROJECT_NAME:-app}_cloudflared
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:

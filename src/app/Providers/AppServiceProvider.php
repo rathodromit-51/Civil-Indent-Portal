@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Providers;
+
+use App\Contracts\Authenticator;
+use App\Services\Auth\DevAuthenticator;
+use App\Services\Auth\LdapAuthenticator;
+use Illuminate\Support\ServiceProvider;
+use InvalidArgumentException;
+use RuntimeException;
+
+class AppServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     */
+    public function register(): void
+    {
+        $this->app->bind(Authenticator::class, function ($app) {
+            $mode = config('auth.auth_mode', 'dev');
+
+            return match ($mode) {
+                'ldap' => new LdapAuthenticator(),
+                'dev' => new DevAuthenticator(
+                    devPassword: (string) config('auth.dev_password', 'secret123')
+                ),
+                default => throw new InvalidArgumentException("Unsupported AUTH_MODE: [{$mode}]"),
+            };
+        });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        if (config('app.env') === 'production' && config('auth.auth_mode') === 'dev') {
+            throw new RuntimeException('FATAL CONFIGURATION ERROR: AUTH_MODE cannot be set to [dev] in production.');
+        }
+    }
+}

@@ -1,0 +1,120 @@
+# Production stack. Runs the image built by CI (.github/workflows/docker-publish.yml) instead of bind-mounting code.
+# Watchtower pulls new images for containers labelled watchtower.enable=true.
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker compose -f docker-compose.prod.yml --profile tunnel up -d
+
+x-app-env: &app-env
+  APP_ENV: production
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: ${DB_DATABASE:-app}
+  DB_USERNAME: root
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+  REDIS_HOST: redis
+
+x-app-image: &app-image ${APP_IMAGE:?set APP_IMAGE in .env, e.g. ghcr.io/<org>/<repo>/app:main}
+
+services:
+  app:
+    image: *app-image
+    container_name: ${PROJECT_NAME:-app}_app
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    ports:
+      - "${APP_PORT:-80}:8080"
+    environment:
+      <<: *app-env
+      WEBROOT: /var/www/html/public
+      PUID: 1000
+      PGID: 1000
+      AUTORUN_ENABLED: "true"
+      AUTORUN_LARAVEL_MIGRATION: "true"
+      AUTORUN_LARAVEL_MIGRATION_SEED: "false"
+      AUTORUN_LARAVEL_STORAGE_LINK: "true"
+      AUTORUN_LARAVEL_OPTIMIZE: "false"
+      AUTORUN_LARAVEL_CONFIG_CACHE: "false"
+      AUTORUN_LARAVEL_ROUTE_CACHE: "false"
+    user: root
+    entrypoint: [ "sh", "-c", "chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache && exec docker-php-serversideup-entrypoint /init" ]
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+
+  queue:
+    image: *app-image
+    container_name: ${PROJECT_NAME:-app}_queue
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    healthcheck:
+      disable: true
+    environment:
+      <<: *app-env
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: ${PROJECT_NAME:-app}_mysql
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-app}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: ${PROJECT_NAME:-app}_redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  # --- Optional services (start with --profile <name>) ---
+
+  soketi:
+    image: quay.io/soketi/soketi:1.6-16-debian
+    container_name: ${PROJECT_NAME:-app}_soketi
+    profiles: [realtime]
+    ports:
+      - "${SOKETI_PORT:-6001}:6001"
+    environment:
+      SOKETI_DEFAULT_APP_ID: ${PUSHER_APP_ID:-app}
+      SOKETI_DEFAULT_APP_KEY: ${PUSHER_APP_KEY:-app-key}
+      SOKETI_DEFAULT_APP_SECRET: ${PUSHER_APP_SECRET:-app-secret}
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: ${PROJECT_NAME:-app}_cloudflared
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # Auto-updates containers labelled watchtower.enable=true when CI pushes a new image.
+  # Needs REGISTRY_USER / REGISTRY_TOKEN (a read:packages token) if the image is private.
+  watchtower:
+    image: containrrr/watchtower
+    container_name: ${PROJECT_NAME:-app}_watchtower
+    profiles: [autoupdate]
+    environment:
+      DOCKER_API_VERSION: "1.44"
+      REPO_USER: ${REGISTRY_USER:-}
+      REPO_PASS: ${REGISTRY_TOKEN:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 300 --cleanup --label-enable
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
