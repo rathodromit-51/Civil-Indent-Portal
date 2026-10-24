@@ -125,6 +125,27 @@
     </div>
 </div>
 
+@if($user->isSuperAdmin())
+    <div class="card" style="margin-top: 24px; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: 1px solid #bfdbfe;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">⚙️ Super Admin Control Center</h3>
+                <p style="color: #475569; font-size: 0.875rem; margin-top: 4px;">
+                    You have system administrator privileges to configure Master Data (Areas, Installations) and verify Role Scopes (§3).
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ route('admin.areas.index') }}" class="btn btn-primary" style="font-size: 0.875rem;">
+                    🗺️ Manage Master Data
+                </a>
+                <a href="{{ route('admin.roles.index') }}" class="btn btn-outline" style="background: white; font-size: 0.875rem;">
+                    🛡️ View Roles (§3)
+                </a>
+            </div>
+        </div>
+    </div>
+@endif
+
 @if(config('auth.auth_mode') === 'dev' && $seededUsers->isNotEmpty())
     <div class="card" style="margin-top: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">

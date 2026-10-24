@@ -171,6 +171,14 @@
                 🏗️ Civil Indent Portal
             </a>
             <div class="navbar-user">
+                @if(Auth::user()->isSuperAdmin())
+                    <a href="{{ route('admin.areas.index') }}" class="btn {{ request()->routeIs('admin.areas.*') || request()->routeIs('admin.installations.*') ? 'btn-primary' : 'btn-outline' }}" style="padding: 6px 12px; font-size: 0.825rem;">
+                        🗺️ Master Data
+                    </a>
+                    <a href="{{ route('admin.roles.index') }}" class="btn {{ request()->routeIs('admin.roles.*') ? 'btn-primary' : 'btn-outline' }}" style="padding: 6px 12px; font-size: 0.825rem;">
+                        🛡️ Roles (§3)
+                    </a>
+                @endif
                 <span style="font-size: 0.875rem; color: var(--text-muted);">
                     Logged in as <strong>{{ Auth::user()->name }}</strong> ({{ Auth::user()->designation }})
                 </span>

@@ -33,4 +33,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Active role assignment for this user by CPF.
+     */
+    public function roleAssignment(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(RoleAssignment::class, 'cpf', 'cpf');
+    }
+
+    /**
+     * Check if user is Super Admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->designation === 'Super Admin'
+            || optional($this->roleAssignment?->role)->name === 'Super Admin';
+    }
 }
