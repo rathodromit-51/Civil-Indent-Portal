@@ -122,9 +122,10 @@ class MasterDataTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.areas.index'));
         $response->assertStatus(200);
         $response->assertSee('Master Data Management');
-        $response->assertSee('Site Alpha');
+        $response->assertSee('Vadodara Asset');
 
         $response = $this->actingAs($admin)->get(route('admin.roles.index'));
+
         $response->assertStatus(200);
         $response->assertSee('System Roles');
         $response->assertSee('Spec §3');
@@ -190,13 +191,14 @@ class MasterDataTest extends TestCase
         $response->assertRedirect(route('admin.areas.create'));
         $response->assertSessionHasErrors(['name', 'code']);
 
-        // Duplicate code ('ALPHA' already seeded)
+        // Duplicate code ('VAD' already seeded)
         $response = $this->actingAs($admin)->from(route('admin.areas.create'))->post(route('admin.areas.store'), [
-            'name' => 'Another Alpha',
-            'code' => 'ALPHA',
+            'name' => 'Another Vadodara',
+            'code' => 'VAD',
         ]);
         $response->assertRedirect(route('admin.areas.create'));
         $response->assertSessionHasErrors(['code']);
+
     }
 
     /**
@@ -261,13 +263,14 @@ class MasterDataTest extends TestCase
         $response->assertRedirect(route('admin.installations.create'));
         $response->assertSessionHasErrors(['area_id']);
 
-        // Duplicate installation code ('ALP-01' already seeded)
+        // Duplicate installation code ('VAD-01' already seeded)
         $response = $this->actingAs($admin)->from(route('admin.installations.create'))->post(route('admin.installations.store'), [
             'area_id' => Area::first()->id,
             'name' => 'Duplicate Code Test',
-            'code' => 'ALP-01',
+            'code' => 'VAD-01',
         ]);
         $response->assertRedirect(route('admin.installations.create'));
         $response->assertSessionHasErrors(['code']);
     }
+
 }

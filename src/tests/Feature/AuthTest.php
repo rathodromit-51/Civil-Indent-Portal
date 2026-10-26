@@ -164,8 +164,9 @@ class AuthTest extends TestCase
             'cpf' => 'DASH001',
             'name' => 'Dashboard User',
             'designation' => 'Civil Engineer',
-            'location' => 'Site Alpha',
+            'location' => 'Vadodara',
             'active' => true,
+
         ]);
 
         $this->actingAs($user);

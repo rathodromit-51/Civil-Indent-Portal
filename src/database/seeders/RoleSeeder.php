@@ -85,14 +85,14 @@ class RoleSeeder extends Seeder
             );
         }
 
-        // Cache lookup maps for areas and installations
-        $areaAlpha = Area::where('code', 'ALPHA')->first();
-        $areaBeta  = Area::where('code', 'BETA')->first();
-        $areaGamma = Area::where('code', 'GAMMA')->first();
+        // Cache lookup maps for areas and installations (Gujarat Industrial Belt)
+        $areaVad = Area::where('code', 'VAD')->first();
+        $areaSur = Area::where('code', 'SUR')->first();
+        $areaAnk = Area::where('code', 'ANK')->first();
 
-        $instAlp1 = Installation::where('code', 'ALP-01')->first();
-        $instBet1 = Installation::where('code', 'BET-01')->first();
-        $instGam1 = Installation::where('code', 'GAM-01')->first();
+        $instVad1 = Installation::where('code', 'VAD-01')->first();
+        $instSur1 = Installation::where('code', 'SUR-01')->first();
+        $instAnk1 = Installation::where('code', 'ANK-01')->first();
 
         // Seed initial role assignments for the seeded test users
         $assignments = [
@@ -104,54 +104,68 @@ class RoleSeeder extends Seeder
                 'installation_id' => null,
                 'assigned_by' => 'ADMIN001',
             ],
-            // SM (Surface Manager - Site Alpha)
+            // SM (Surface Manager - Vadodara & Surat)
             [
                 'cpf' => 'SM001',
                 'role_id' => $roleModels['SM']->id,
-                'area_id' => $areaAlpha?->id,
+                'area_id' => $areaVad?->id,
                 'installation_id' => null,
                 'assigned_by' => 'ADMIN001',
             ],
-            // SAMs (Surface Area Manager - Site Alpha & Site Beta)
+            [
+                'cpf' => 'SM002',
+                'role_id' => $roleModels['SM']->id,
+                'area_id' => $areaSur?->id,
+                'installation_id' => null,
+                'assigned_by' => 'ADMIN001',
+            ],
+            // SAMs (Surface Area Manager - Vadodara & Surat)
             [
                 'cpf' => 'SAM001',
                 'role_id' => $roleModels['SAM']->id,
-                'area_id' => $areaAlpha?->id,
+                'area_id' => $areaVad?->id,
                 'installation_id' => null,
                 'assigned_by' => 'ADMIN001',
             ],
             [
                 'cpf' => 'SAM002',
                 'role_id' => $roleModels['SAM']->id,
-                'area_id' => $areaBeta?->id,
+                'area_id' => $areaSur?->id,
                 'installation_id' => null,
                 'assigned_by' => 'ADMIN001',
             ],
-            // IMs (Installation Manager - scoped to specific installations)
+            // IMs (Installation Manager - Vadodara, Surat, Ankleshwar)
             [
                 'cpf' => 'IM001',
                 'role_id' => $roleModels['IM']->id,
                 'area_id' => null,
-                'installation_id' => $instAlp1?->id,
+                'installation_id' => $instVad1?->id,
                 'assigned_by' => 'SAM001',
             ],
             [
                 'cpf' => 'IM002',
                 'role_id' => $roleModels['IM']->id,
                 'area_id' => null,
-                'installation_id' => $instBet1?->id,
+                'installation_id' => $instSur1?->id,
                 'assigned_by' => 'SAM002',
             ],
             [
                 'cpf' => 'IM003',
                 'role_id' => $roleModels['IM']->id,
                 'area_id' => null,
-                'installation_id' => $instGam1?->id,
+                'installation_id' => $instAnk1?->id,
                 'assigned_by' => 'ADMIN001',
             ],
             // HES, LM Works, ICO (none scope)
             [
                 'cpf' => 'HES001',
+                'role_id' => $roleModels['HES']->id,
+                'area_id' => null,
+                'installation_id' => null,
+                'assigned_by' => 'ADMIN001',
+            ],
+            [
+                'cpf' => 'HES002',
                 'role_id' => $roleModels['HES']->id,
                 'area_id' => null,
                 'installation_id' => null,
@@ -176,21 +190,21 @@ class RoleSeeder extends Seeder
                 'cpf' => 'CE001',
                 'role_id' => $roleModels['CE']->id,
                 'area_id' => null,
-                'installation_id' => $instAlp1?->id,
+                'installation_id' => $instVad1?->id,
                 'assigned_by' => 'IM001',
             ],
             [
                 'cpf' => 'CE002',
                 'role_id' => $roleModels['CE']->id,
                 'area_id' => null,
-                'installation_id' => $instBet1?->id,
+                'installation_id' => $instSur1?->id,
                 'assigned_by' => 'IM002',
             ],
             [
                 'cpf' => 'CE003',
                 'role_id' => $roleModels['CE']->id,
                 'area_id' => null,
-                'installation_id' => $instGam1?->id,
+                'installation_id' => $instAnk1?->id,
                 'assigned_by' => 'ADMIN001',
             ],
             // Normal Users
@@ -208,6 +222,7 @@ class RoleSeeder extends Seeder
                 'installation_id' => null,
                 'assigned_by' => 'ADMIN001',
             ],
+
             [
                 'cpf' => 'USER003',
                 'role_id' => $roleModels['User']->id,
@@ -231,11 +246,29 @@ class RoleSeeder extends Seeder
             ],
         ];
 
-        foreach ($assignments as $assignData) {
-            RoleAssignment::updateOrCreate(
-                ['cpf' => $assignData['cpf']],
-                $assignData
-            );
+        // Always ensure Super Admin has the Super Admin role assigned
+        RoleAssignment::firstOrCreate(
+            ['cpf' => 'ADMIN001'],
+            [
+                'role_id' => $roleModels['Super Admin']->id,
+                'area_id' => null,
+                'installation_id' => null,
+                'assigned_by' => 'ADMIN001',
+            ]
+        );
+
+        // Only populate initial sample role assignments on a fresh install (when table only has <= 1 assignment)
+        // This ensures any manual assignments or role revocations made by an administrator are preserved.
+        if (RoleAssignment::count() <= 1) {
+            foreach ($assignments as $assignData) {
+                if ($assignData['cpf'] === 'ADMIN001') {
+                    continue;
+                }
+                RoleAssignment::firstOrCreate(
+                    ['cpf' => $assignData['cpf']],
+                    $assignData
+                );
+            }
         }
     }
 }

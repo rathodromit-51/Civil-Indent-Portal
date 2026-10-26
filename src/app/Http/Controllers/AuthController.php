@@ -10,10 +10,6 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function __construct(
-        protected Authenticator $authenticator
-    ) {}
-
     /**
      * Show the login form.
      */
@@ -29,7 +25,7 @@ class AuthController extends Controller
     /**
      * Handle incoming authentication request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Authenticator $authenticator): RedirectResponse
     {
         $credentials = $request->validate([
             'cpf' => ['required', 'string'],
@@ -39,7 +35,7 @@ class AuthController extends Controller
         $cpf = trim($credentials['cpf']);
         $password = $credentials['password'];
 
-        $user = $this->authenticator->authenticate($cpf, $password);
+        $user = $authenticator->authenticate($cpf, $password);
 
         if (! $user) {
             return back()->withInput($request->only('cpf', 'remember'))->withErrors([

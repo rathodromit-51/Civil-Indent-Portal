@@ -32,4 +32,13 @@ class Installation extends Model
     {
         return $this->hasMany(RoleAssignment::class);
     }
+
+    /**
+     * Indents associated with this installation.
+     */
+    public function indents(): HasMany
+    {
+        return $this->hasMany(Indent::class);
+    }
 }
+

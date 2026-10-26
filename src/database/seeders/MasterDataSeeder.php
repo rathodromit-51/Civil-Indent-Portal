@@ -9,43 +9,43 @@ use Illuminate\Database\Seeder;
 class MasterDataSeeder extends Seeder
 {
     /**
-     * Run the database seeds for Areas and Installations.
+     * Run the database seeds for Areas and Installations (Gujarat Industrial Belt).
      * Idempotent using updateOrCreate on unique 'code'.
      */
     public function run(): void
     {
         $areas = [
             [
-                'name' => 'Site Alpha',
-                'code' => 'ALPHA',
+                'name' => 'Vadodara Asset',
+                'code' => 'VAD',
                 'installations' => [
-                    ['name' => 'Alpha Plant 1', 'code' => 'ALP-01'],
-                    ['name' => 'Alpha Storage Yard', 'code' => 'ALP-02'],
-                    ['name' => 'Alpha Maintenance Bay', 'code' => 'ALP-03'],
+                    ['name' => 'Vadodara Plant 1', 'code' => 'VAD-01'],
+                    ['name' => 'Vadodara Storage Yard', 'code' => 'VAD-02'],
+                    ['name' => 'Vadodara Maintenance Bay', 'code' => 'VAD-03'],
                 ],
             ],
             [
-                'name' => 'Site Beta',
-                'code' => 'BETA',
+                'name' => 'Surat Asset',
+                'code' => 'SUR',
                 'installations' => [
-                    ['name' => 'Beta Compressor Station', 'code' => 'BET-01'],
-                    ['name' => 'Beta Pipeline Terminal', 'code' => 'BET-02'],
+                    ['name' => 'Surat Compressor Station', 'code' => 'SUR-01'],
+                    ['name' => 'Surat Pipeline Terminal', 'code' => 'SUR-02'],
                 ],
             ],
             [
-                'name' => 'Site Gamma',
-                'code' => 'GAMMA',
+                'name' => 'Ankleshwar Asset',
+                'code' => 'ANK',
                 'installations' => [
-                    ['name' => 'Gamma Substation', 'code' => 'GAM-01'],
-                    ['name' => 'Gamma Water Works', 'code' => 'GAM-02'],
+                    ['name' => 'Ankleshwar Substation', 'code' => 'ANK-01'],
+                    ['name' => 'Ankleshwar Water Works', 'code' => 'ANK-02'],
                 ],
             ],
             [
-                'name' => 'Headquarters',
-                'code' => 'HQ',
+                'name' => 'Ahmedabad HQ',
+                'code' => 'AHQ',
                 'installations' => [
-                    ['name' => 'HQ Engineering Lab', 'code' => 'HQ-01'],
-                    ['name' => 'HQ Central Depot', 'code' => 'HQ-02'],
+                    ['name' => 'HQ Engineering Lab', 'code' => 'AHQ-01'],
+                    ['name' => 'HQ Central Depot', 'code' => 'AHQ-02'],
                 ],
             ],
         ];

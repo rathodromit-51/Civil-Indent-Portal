@@ -10,17 +10,17 @@ class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * Seeded users:
-     * - 1 Super Admin (Super Administrator)
-     * - 1 SM (Surface Manager)
-     * - 2 SAM (Surface Area Manager)
-     * - 3 IM (Installation Manager)
-     * - 1 HES (Head Eng. Services)
-     * - 1 LM Works (Civil Head)
-     * - 1 ICO (Incharge Civil Ops)
-     * - 3 CE (Civil Engineer)
-     * - 5 Users (Normal user)
-     * Total: 18 users (Idempotent using updateOrCreate on 'cpf')
+     * Seeded users with Gujarat asset locations:
+     * - 1 Super Admin (Gandhinagar HQ)
+     * - 2 SM (Surface Managers - Vadodara & Surat)
+     * - 2 SAM (Surface Area Managers - Vadodara & Surat)
+     * - 3 IM (Installation Managers - Vadodara, Surat, Ankleshwar)
+     * - 2 HES (Head Eng. Services - Gandhinagar HQ & Surat)
+     * - 1 LM Works (Civil Head - Vadodara)
+     * - 1 ICO (Incharge Civil Ops - Gandhinagar HQ)
+     * - 3 CE (Civil Engineers - Vadodara, Surat, Ankleshwar)
+     * - 5 Users (Normal users)
+     * Total: 20 users (Idempotent using updateOrCreate on 'cpf')
      */
     public function run(): void
     {
@@ -32,19 +32,28 @@ class UserSeeder extends Seeder
                 'cpf' => 'ADMIN001',
                 'name' => 'Super Administrator',
                 'designation' => 'Super Admin',
-                'location' => 'Headquarters',
+                'location' => 'Gandhinagar HQ',
                 'email' => 'superadmin@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
             ],
 
-            // 1 SM (Surface Manager)
+            // 2 SM (Surface Manager)
             [
                 'cpf' => 'SM001',
                 'name' => 'Vikram Sharma',
                 'designation' => 'Surface Manager (SM)',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'sm1@civilportal.local',
+                'password' => $defaultHashedPassword,
+                'active' => true,
+            ],
+            [
+                'cpf' => 'SM002',
+                'name' => 'Rohit Sharma',
+                'designation' => 'Surface Manager (SM)',
+                'location' => 'Surat',
+                'email' => 'sm2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
             ],
@@ -54,7 +63,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'SAM001',
                 'name' => 'Anita Desai',
                 'designation' => 'Surface Area Manager (SAM)',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'sam1@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -63,7 +72,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'SAM002',
                 'name' => 'Rajesh Verma',
                 'designation' => 'Surface Area Manager (SAM)',
-                'location' => 'Site Beta',
+                'location' => 'Surat',
                 'email' => 'sam2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -74,7 +83,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'IM001',
                 'name' => 'Pooja Nair',
                 'designation' => 'Installation Manager (IM)',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'im1@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => false,
@@ -83,7 +92,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'IM002',
                 'name' => 'Kiran Rao',
                 'designation' => 'Installation Manager (IM)',
-                'location' => 'Site Beta',
+                'location' => 'Surat',
                 'email' => 'im2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -92,19 +101,28 @@ class UserSeeder extends Seeder
                 'cpf' => 'IM003',
                 'name' => 'Sunil Gupta',
                 'designation' => 'Installation Manager (IM)',
-                'location' => 'Site Gamma',
+                'location' => 'Ankleshwar',
                 'email' => 'im3@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
             ],
 
-            // 1 HES (Head Eng. Services)
+            // 2 HES (Head Eng. Services)
             [
                 'cpf' => 'HES001',
                 'name' => 'Dr. Arindam Bose',
                 'designation' => 'Head Eng. Services (HES)',
-                'location' => 'Headquarters',
+                'location' => 'Gandhinagar HQ',
                 'email' => 'hes@civilportal.local',
+                'password' => $defaultHashedPassword,
+                'active' => true,
+            ],
+            [
+                'cpf' => 'HES002',
+                'name' => 'Dr. Subodh Goel',
+                'designation' => 'Head Eng. Services (HES)',
+                'location' => 'Surat',
+                'email' => 'hes2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
             ],
@@ -114,7 +132,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'LMW001',
                 'name' => 'Manoj Kulkarni',
                 'designation' => 'Civil Head (LM Works)',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'lmworks@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -125,7 +143,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'ICO001',
                 'name' => 'Meera Krishnan',
                 'designation' => 'Incharge Civil Ops (ICO)',
-                'location' => 'Headquarters',
+                'location' => 'Gandhinagar HQ',
                 'email' => 'ico@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -136,7 +154,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'CE001',
                 'name' => 'Deepak Patel',
                 'designation' => 'Civil Engineer (CE)',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'ce1@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -145,7 +163,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'CE002',
                 'name' => 'Sneha Roy',
                 'designation' => 'Civil Engineer (CE)',
-                'location' => 'Site Beta',
+                'location' => 'Surat',
                 'email' => 'ce2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => false,
@@ -154,7 +172,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'CE003',
                 'name' => 'Tariq Ansari',
                 'designation' => 'Civil Engineer (CE)',
-                'location' => 'Site Gamma',
+                'location' => 'Ankleshwar',
                 'email' => 'ce3@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -165,7 +183,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'USER001',
                 'name' => 'Rohan Mehta',
                 'designation' => 'Normal User',
-                'location' => 'Site Alpha',
+                'location' => 'Vadodara',
                 'email' => 'user1@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -174,7 +192,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'USER002',
                 'name' => 'Kavita Joshi',
                 'designation' => 'Normal User',
-                'location' => 'Site Beta',
+                'location' => 'Surat',
                 'email' => 'user2@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => false,
@@ -183,16 +201,16 @@ class UserSeeder extends Seeder
                 'cpf' => 'USER003',
                 'name' => 'Arun Pandey',
                 'designation' => 'Normal User',
-                'location' => 'Site Gamma',
+                'location' => 'Ankleshwar',
                 'email' => 'user3@civilportal.local',
                 'password' => $defaultHashedPassword,
-                'active' => false,
+                'active' => true,
             ],
             [
                 'cpf' => 'USER004',
                 'name' => 'Divya Pillai',
                 'designation' => 'Normal User',
-                'location' => 'Regional Office',
+                'location' => 'Ahmedabad (Regional Office)',
                 'email' => 'user4@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,
@@ -201,7 +219,7 @@ class UserSeeder extends Seeder
                 'cpf' => 'USER005',
                 'name' => 'Sanjay Chawla',
                 'designation' => 'Normal User',
-                'location' => 'Headquarters',
+                'location' => 'Gandhinagar HQ',
                 'email' => 'user5@civilportal.local',
                 'password' => $defaultHashedPassword,
                 'active' => true,

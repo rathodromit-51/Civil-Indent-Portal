@@ -3,8 +3,12 @@
 namespace App\Providers;
 
 use App\Contracts\Authenticator;
+use App\Models\RoleAssignment;
+use App\Policies\RoleAssignmentPolicy;
 use App\Services\Auth\DevAuthenticator;
 use App\Services\Auth\LdapAuthenticator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use RuntimeException;
@@ -34,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(RoleAssignment::class, RoleAssignmentPolicy::class);
+        Paginator::defaultView('vendor.pagination.default');
+
         if (config('app.env') === 'production' && config('auth.auth_mode') === 'dev') {
             throw new RuntimeException('FATAL CONFIGURATION ERROR: AUTH_MODE cannot be set to [dev] in production.');
         }

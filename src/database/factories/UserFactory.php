@@ -28,8 +28,9 @@ class UserFactory extends Factory
             'cpf' => strtoupper(fake()->unique()->bothify('CPF?#?#?#')),
             'name' => fake()->name(),
             'designation' => 'Civil Engineer',
-            'location' => 'Site Alpha',
+            'location' => 'Vadodara',
             'email' => fake()->unique()->safeEmail(),
+
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'active' => true,

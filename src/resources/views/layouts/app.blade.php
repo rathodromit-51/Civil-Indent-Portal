@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -155,9 +156,92 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             padding: 24px;
         }
+
+        /* Pagination Styling */
+        .pagination-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.875rem;
+            width: 100%;
+        }
+
+        .pagination-info {
+            color: var(--text-muted);
+            font-size: 0.825rem;
+        }
+
+        .pagination-info strong {
+            color: var(--text-color);
+        }
+
+        .pagination-links {
+            display: flex;
+            align-items: center;
+            list-style: none;
+            gap: 4px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-item {
+            display: inline-block;
+        }
+
+        .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.825rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+
+        .page-link:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: var(--primary);
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .page-item.disabled .page-link {
+            color: #94a3b8;
+            background-color: #f8fafc;
+            border-color: var(--border-color);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Fallback for unstyled SVG icons in default pagination */
+        nav[role="navigation"] svg {
+            width: 16px !important;
+            height: 16px !important;
+            max-width: 16px !important;
+            max-height: 16px !important;
+            display: inline-block !important;
+            vertical-align: middle !important;
+        }
     </style>
+
     @stack('styles')
 </head>
+
 <body>
     <!-- @if(config('auth.auth_mode') === 'dev')
         <div class="dev-banner" id="dev-mode-banner">
@@ -172,13 +256,24 @@
             </a>
             <div class="navbar-user">
                 @if(Auth::user()->isSuperAdmin())
-                    <a href="{{ route('admin.areas.index') }}" class="btn {{ request()->routeIs('admin.areas.*') || request()->routeIs('admin.installations.*') ? 'btn-primary' : 'btn-outline' }}" style="padding: 6px 12px; font-size: 0.825rem;">
+                    <a href="{{ route('admin.areas.index') }}"
+                        class="btn {{ request()->routeIs('admin.areas.*') || request()->routeIs('admin.installations.*') ? 'btn-primary' : 'btn-outline' }}"
+                        style="padding: 6px 12px; font-size: 0.825rem;">
                         🗺️ Master Data
                     </a>
-                    <a href="{{ route('admin.roles.index') }}" class="btn {{ request()->routeIs('admin.roles.*') ? 'btn-primary' : 'btn-outline' }}" style="padding: 6px 12px; font-size: 0.825rem;">
+                    <a href="{{ route('admin.roles.index') }}"
+                        class="btn {{ request()->routeIs('admin.roles.*') ? 'btn-primary' : 'btn-outline' }}"
+                        style="padding: 6px 12px; font-size: 0.825rem;">
                         🛡️ Roles (§3)
                     </a>
                 @endif
+                @can('viewAny', \App\Models\RoleAssignment::class)
+                    <a href="{{ route('admin.users-roles.index') }}"
+                        class="btn {{ request()->routeIs('admin.users-roles.*') ? 'btn-primary' : 'btn-outline' }}"
+                        style="padding: 6px 12px; font-size: 0.825rem;">
+                        👥 Users & Roles
+                    </a>
+                @endcan
                 <span style="font-size: 0.875rem; color: var(--text-muted);">
                     Logged in as <strong>{{ Auth::user()->name }}</strong> ({{ Auth::user()->designation }})
                 </span>
@@ -193,11 +288,36 @@
     <main class="container">
         @if(session('status'))
             <div class="alert alert-success">
-                {{ session('status') }}
+                ✅ {{ session('status') }}
+            </div>
+        @endif
+
+        @if(session('success'))
+            <div class="alert alert-success">
+                ✅ {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">
+                ⚠️ {{ session('error') }}
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <strong>Please correct the following errors:</strong>
+                <ul style="margin-left: 20px; margin-top: 6px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
         @yield('content')
     </main>
+
 </body>
+
 </html>
