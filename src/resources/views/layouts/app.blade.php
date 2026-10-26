@@ -255,6 +255,11 @@
                 🏗️ Civil Indent Portal
             </a>
             <div class="navbar-user">
+                <a href="{{ route('indents.index') }}"
+                    class="btn {{ request()->routeIs('indents.*') ? 'btn-primary' : 'btn-outline' }}"
+                    style="padding: 6px 12px; font-size: 0.825rem;">
+                    📋 Indents
+                </a>
                 @if(Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.areas.index') }}"
                         class="btn {{ request()->routeIs('admin.areas.*') || request()->routeIs('admin.installations.*') ? 'btn-primary' : 'btn-outline' }}"

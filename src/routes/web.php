@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\IndentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,6 +23,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::match(['get', 'post'], '/logout', [AuthController::class, 'destroy'])->name('logout');
+
+    // Indents (Civil Work Requisitions) - Draft, Submit, Forwarding
+    Route::resource('indents', IndentController::class);
 
 
     // Role Assignments & User Roles Screen (Super Admin, SM, SAM)
