@@ -5,7 +5,7 @@
 @section('content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div>
-        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">🗺️ Master Data Management</h1>
+        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">Master Data Management</h1>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 4px;">
             Manage organizational hierarchy: Areas and their subordinate Installations.
         </p>
@@ -91,7 +91,7 @@
                                         {{ $installation->code }}
                                     </td>
                                     <td style="padding: 12px 20px; font-weight: 500; color: var(--text-color);">
-                                        🏢 {{ $installation->name }}
+                                        {{ $installation->name }}
                                     </td>
                                     <td style="padding: 12px 20px; text-align: right;">
                                         <div style="display: inline-flex; gap: 6px;">

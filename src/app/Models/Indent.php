@@ -275,6 +275,13 @@ class Indent extends Model
      */
     public function latestRejectionMovement(): ?Movement
     {
+        if ($this->relationLoaded('movements')) {
+            return $this->movements
+                ->where('is_rejected', true)
+                ->sortByDesc('id')
+                ->first();
+        }
+
         return $this->movements()
             ->where('is_rejected', true)
             ->with(['fromUser.roleAssignment.role'])

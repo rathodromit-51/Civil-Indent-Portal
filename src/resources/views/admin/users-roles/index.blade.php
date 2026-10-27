@@ -6,7 +6,7 @@
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
 
     <div>
-        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">👥 Users & Roles Management</h1>
+        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">Users & Roles Management</h1>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 4px;">
             Search users by CPF or Name, view current assignments, and manage roles per organizational policies.
         </p>
@@ -16,11 +16,11 @@
             + Assign Role
         </a>
         <a href="#audit-logs-card" class="btn btn-outline" style="background: white;" onclick="document.getElementById('audit-logs-card').scrollIntoView({behavior: 'smooth'})">
-            📜 View Audit Logs
+            View Audit Logs
         </a>
         @if(Auth::user()->isSuperAdmin())
             <a href="{{ route('admin.roles.index') }}" class="btn btn-outline" style="background: white;">
-                🛡️ View Role Definitions (§3)
+                View Role Definitions (§3)
             </a>
         @endif
     </div>
@@ -44,11 +44,11 @@
         <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600;">Your Authority</div>
         <div style="font-size: 1rem; font-weight: 700; color: var(--text-color); margin-top: 4px;">
             @if($actor->isSuperAdmin())
-                <span style="color: #2563eb;">⚡ Super Admin (Full)</span>
+                <span style="color: #2563eb;">Super Admin (Full)</span>
             @elseif($actor->hasRole('SM'))
-                <span style="color: #059669;">🛡️ SM (SAM & IM in Area)</span>
+                <span style="color: #059669;">SM (SAM & IM in Area)</span>
             @elseif($actor->hasRole('SAM'))
-                <span style="color: #7c3aed;">📍 SAM (IM in Area)</span>
+                <span style="color: #7c3aed;">SAM (IM in Area)</span>
             @else
                 <span style="color: var(--text-muted);">View Only</span>
             @endif
@@ -59,7 +59,7 @@
 <!-- Policy Rules Callout -->
 <div class="card" style="margin-bottom: 24px; background: #f8fafc; border: 1px solid #cbd5e1; border-left: 5px solid #2563eb; padding: 18px 20px;">
     <h3 style="font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 6px;">
-        📜 Enforced Role Assignment Policies & Rules
+        Enforced Role Assignment Policies & Rules
     </h3>
     <ul style="margin-left: 20px; font-size: 0.85rem; color: #475569; line-height: 1.6;">
         <li><strong>One role per CPF:</strong> Assigning a new role to a CPF that already holds a role will be rejected. Remove the existing role first.</li>
@@ -80,11 +80,11 @@
                    style="width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.875rem;">
         </div>
         <button type="submit" class="btn btn-primary" style="padding: 10px 18px;">
-            🔍 Search
+            Search
         </button>
         @if($search !== '')
             <a href="{{ route('admin.users-roles.index') }}" class="btn btn-outline" style="padding: 10px 16px; background: white;">
-                ✖ Clear Filter
+                Clear Filter
             </a>
             <span style="font-size: 0.85rem; color: var(--text-muted);">
                 Found {{ $users->total() }} matching result(s)
@@ -126,7 +126,7 @@
                         </td>
                         <td style="padding: 14px 20px; color: var(--text-muted);">
                             <div>{{ $user->email }}</div>
-                            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">📍 {{ $user->location ?? 'Headquarters' }}</div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">{{ $user->location ?? 'Headquarters' }}</div>
                         </td>
                         <td style="padding: 14px 20px;">
                             @if($role)
@@ -149,7 +149,7 @@
                         <td style="padding: 14px 20px;">
                             @if($assignment?->installation)
                                 <div style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 500; background: #fff7ed; color: #c2410c; padding: 3px 8px; border-radius: 4px; border: 1px solid #ffedd5;">
-                                    🏭 {{ $assignment->installation->name }} ({{ $assignment->installation->code }})
+                                    {{ $assignment->installation->name }} ({{ $assignment->installation->code }})
                                 </div>
                                 @if($assignment->installation->area)
                                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
@@ -158,11 +158,11 @@
                                 @endif
                             @elseif($assignment?->area)
                                 <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 500; background: #ecfdf5; color: #047857; padding: 3px 8px; border-radius: 4px; border: 1px solid #d1fae5;">
-                                    🗺️ {{ $assignment->area->name }} ({{ $assignment->area->code }})
+                                    {{ $assignment->area->name }} ({{ $assignment->area->code }})
                                 </span>
                             @elseif($role)
                                 <span style="font-size: 0.8rem; color: var(--text-muted);">
-                                    🌐 System-wide
+                                    System-wide
                                 </span>
                             @else
                                 <span style="color: #94a3b8; font-size: 0.8rem;">—</span>
@@ -180,14 +180,14 @@
                             @if($assignment)
                                 @if($user->cpf === $actor->cpf)
                                     <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;" title="You cannot remove your own role assignment">
-                                        🔒 Current User
+                                        Current User
                                     </span>
                                 @elseif($actor->can('delete', $assignment))
                                     <form action="{{ route('admin.users-roles.destroy', $assignment) }}" method="POST" style="display: inline-block; margin: 0;" onsubmit="return confirm('Are you sure you want to remove the role {{ $role->name }} from {{ $user->name }} ({{ $user->cpf }})?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline" style="color: var(--danger); border-color: #fca5a5; background: #fff5f5; padding: 5px 12px; font-size: 0.8rem;">
-                                            🗑️ Remove Role
+                                            Remove Role
                                         </button>
                                     </form>
                                 @else
@@ -198,7 +198,7 @@
                                         class="btn btn-outline"
                                         onclick="prefillAssignment('{{ $user->cpf }}', '{{ addslashes($user->name) }}')"
                                         style="background: white; border-color: var(--primary); color: var(--primary); padding: 5px 12px; font-size: 0.8rem;">
-                                    ➕ Assign Role
+                                    Assign Role
                                 </button>
                             @endif
                         </td>
@@ -233,7 +233,7 @@
     <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-wrap: wrap; gap: 12px;">
         <div>
             <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
-                📜 Audit Logs
+                Audit Logs
                 <span style="font-size: 0.75rem; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 9999px; font-weight: 600;">
                     {{ $auditLogs->total() }} Total Events (7 per page)
                 </span>
@@ -277,11 +277,11 @@
                         <td style="padding: 12px 20px;">
                             @if(strtolower($log->what) === 'assign')
                                 <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
-                                    ➕ ASSIGN
+                                    ASSIGN
                                 </span>
                             @elseif(strtolower($log->what) === 'remove')
                                 <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
-                                    🗑️ REMOVE
+                                    REMOVE
                                 </span>
                             @else
                                 <span style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.75rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">
@@ -303,11 +303,11 @@
                             </div>
                             @if(!empty($log->details['installation_name']))
                                 <div style="color: #c2410c; margin-top: 2px;">
-                                    🏭 {{ $log->details['installation_name'] }}
+                                    {{ $log->details['installation_name'] }}
                                 </div>
                             @elseif(!empty($log->details['area_name']))
                                 <div style="color: #047857; margin-top: 2px;">
-                                    🗺️ {{ $log->details['area_name'] }}
+                                    {{ $log->details['area_name'] }}
                                 </div>
                             @endif
                             @if(!empty($log->details['from']))
@@ -340,7 +340,7 @@
 <div class="card" id="assign-role-card" style="border: 1px solid var(--border-color); background: white;">
     <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
         <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-color);">
-            ➕ Assign Role to User
+            Assign Role to User
         </h2>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 4px;">
             Assign an organizational role to a registered CPF. Scopes and single-holder constraints will be verified automatically.
@@ -349,7 +349,7 @@
 
     @if($assignableRoles->isEmpty())
         <div class="alert alert-danger" style="margin-bottom: 0;">
-            ⚠️ You do not have permission to assign any roles under the current policy rules.
+            You do not have permission to assign any roles under the current policy rules.
         </div>
     @else
         <form method="POST" action="{{ route('admin.users-roles.store') }}" id="role-assignment-form">
@@ -474,7 +474,7 @@
                     Reset Form
                 </button>
                 <button type="submit" class="btn btn-primary" style="padding: 10px 24px;">
-                    💾 Confirm & Assign Role
+                    Confirm & Assign Role
                 </button>
             </div>
         </form>

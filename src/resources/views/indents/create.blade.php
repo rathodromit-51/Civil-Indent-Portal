@@ -109,7 +109,7 @@
             &larr; Back to Indents
         </a>
         <h1 class="form-title">
-            ➕ Raise New Civil Indent
+            Raise New Civil Indent
         </h1>
         <p style="color: var(--text-muted); font-size: 0.875rem;">
             Initiate a requisition for civil engineering works. You can save as a draft to edit later, or submit directly to forward to the Installation Manager.
@@ -135,7 +135,7 @@
                        autofocus>
                 <div class="form-hint">A concise, descriptive summary of the required civil work.</div>
                 @error('title')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -158,7 +158,7 @@
                         @endforeach
                     </select>
                     @error('work_type')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -180,7 +180,7 @@
                     </select>
                     <div class="form-hint">Select the physical plant or site where work will be executed.</div>
                     @error('installation_id')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -204,7 +204,7 @@
                     </select>
                     <div class="form-hint">Indicates operational urgency for scheduling.</div>
                     @error('priority')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -222,7 +222,7 @@
                            required>
                     <div class="form-hint">Target date by which work needs to be completed.</div>
                     @error('required_by')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -239,7 +239,7 @@
                           placeholder="Provide detailed technical dimensions, material requirements, site conditions, or specific structural challenges...">{{ old('description') }}</textarea>
                 <div class="form-hint">Optional detailed technical specifications.</div>
                 @error('description')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -255,15 +255,15 @@
                           placeholder="Explain why this work is critical, potential safety hazards, impact on plant operations, or regulatory compliance needs...">{{ old('justification') }}</textarea>
                 <div class="form-hint">Why is this work required at this time?</div>
                 @error('justification')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
             {{-- Multiple Attachments --}}
             <div class="form-group" style="background: #ffffff; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
                 <label for="attachments" class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
-                    <span style="display: flex; align-items: center; gap: 6px;">
-                        📎 Attachments (Optional, Multiple)
+                    <span>
+                        Attachments (Optional, Multiple)
                     </span>
                     <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">
                         Max 100 MB per file
@@ -279,17 +279,17 @@
                     Supported formats: <strong>Images</strong> (JPG, PNG, GIF, SVG, WEBP), <strong>Documents</strong> (PDF, DOC, DOCX), <strong>Spreadsheets</strong> (XLS, XLSX, CSV), <strong>Presentations</strong> (PPT, PPTX), <strong>Archives</strong> (ZIP), <strong>CAD & GIS</strong> (DWG, DXF, KML). Stored on a secure private disk.
                 </div>
                 @error('attachments')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
                 @error('attachments.*')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
             {{-- Submission Remarks (Shown when submitting) --}}
             <div class="form-group" style="background: #f8fafc; border: 1px dashed var(--border-color); padding: 16px; border-radius: 8px;">
-                <label for="remark" class="form-label" style="display: flex; align-items: center; gap: 6px;">
-                    💬 Submission Remarks / Notes (Optional)
+                <label for="remark" class="form-label">
+                    Submission Remarks / Notes (Optional)
                 </label>
                 <input type="text"
                        id="remark"
@@ -299,7 +299,7 @@
                        placeholder="e.g. Urgent review requested due to upcoming monsoon season">
                 <div class="form-hint">Recorded in the audit movement history when the indent is forwarded.</div>
                 @error('remark')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -316,7 +316,7 @@
                             value="draft"
                             class="btn btn-outline"
                             style="padding: 10px 20px; font-weight: 600; color: #b45309; border-color: #fde68a; background: #fffbeb;">
-                        💾 Save as Draft
+                        Save as Draft
                     </button>
 
                     {{-- Submit Button (First forward) --}}
@@ -326,7 +326,7 @@
                             class="btn btn-primary"
                             style="padding: 10px 24px; font-weight: 600;"
                             onclick="return confirm('Submit this indent now? Once submitted, it will be forwarded for review and can no longer be edited (FRIND-04).');">
-                        🚀 Submit Indent (Forward)
+                        Submit Indent (Forward)
                     </button>
                 </div>
             </div>

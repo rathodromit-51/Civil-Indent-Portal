@@ -64,7 +64,7 @@ class IndentController extends Controller
         $status = $request->input('status');
         $priority = $request->input('priority');
 
-        $query = Indent::with(['installation.area', 'creator', 'currentHolder'])
+        $query = Indent::with(['installation.area', 'creator', 'currentHolder', 'latestMovement'])
             ->latest('updated_at')
             ->latest('id');
 
@@ -223,10 +223,15 @@ class IndentController extends Controller
             ]);
 
             // Create initial movement (First forward)
+            $fromRole = $user->activeRole()?->name ?? $user->roleAssignment?->role?->name ?? 'User';
+            $imRoleName = $imAssignment?->role?->name ?? 'IM';
+
             $movement = Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
+                'from_role' => $fromRole,
                 'to' => $nextHolderCpf,
+                'to_role' => $imRoleName,
                 'action' => MovementAction::SUBMIT->value,
                 'is_rejected' => false,
                 'remark' => $request->input('remark') ?: 'Initial indent submission',
@@ -257,6 +262,7 @@ class IndentController extends Controller
 
     /**
      * Display the specified indent.
+     * Prevents N+1 queries by eager loading all relations in batch.
      */
     public function show(Indent $indent): View
     {
@@ -264,17 +270,26 @@ class IndentController extends Controller
 
         $indent->load([
             'installation.area',
-            'creator',
-            'currentHolder',
-            'movements' => fn ($q) => $q->with(['fromUser', 'toUser', 'attachments'])->latest('created_at')->latest('id'),
-            'participants.user',
+            'creator.roleAssignment.role',
+            'currentHolder.roleAssignment.role',
+            'movements' => fn ($q) => $q->with([
+                'fromUser',
+                'toUser',
+                'attachments',
+            ])->orderBy('created_at', 'asc')->orderBy('id', 'asc'),
+            'participants.user.roleAssignment.role',
+            'participants.user.roleAssignment.area',
+            'participants.user.roleAssignment.installation',
             'attachments.uploaderUser',
         ]);
 
-        $earlierParticipants = $indent->participants()
-            ->where('cpf', '!=', auth()->user()?->cpf)
-            ->with(['user.roleAssignment.role', 'user.roleAssignment.area', 'user.roleAssignment.installation'])
-            ->get();
+        // Link indent relation on attachments in memory to prevent N+1 queries during policy checks
+        $indent->attachments->each(fn ($att) => $att->setRelation('indent', $indent));
+
+        $currentCpf = auth()->user()?->cpf;
+        $earlierParticipants = $indent->participants
+            ->where('cpf', '!=', $currentCpf)
+            ->values();
 
         return view('indents.show', [
             'indent' => $indent,
@@ -358,10 +373,15 @@ class IndentController extends Controller
             ]);
 
             // Create first forward movement
+            $fromRole = $user->activeRole()?->name ?? $user->roleAssignment?->role?->name ?? 'User';
+            $imRoleName = $imAssignment?->role?->name ?? 'IM';
+
             $movement = Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
+                'from_role' => $fromRole,
                 'to' => $nextHolderCpf,
+                'to_role' => $imRoleName,
                 'action' => MovementAction::SUBMIT->value,
                 'is_rejected' => false,
                 'remark' => $request->input('remark') ?: 'Initial indent submission from draft',
@@ -521,12 +541,18 @@ class IndentController extends Controller
             $isRejected = true;
         }
 
-        DB::transaction(function () use ($indent, $user, $recipientCpf, $action, $isRejected, $remark) {
+        $recipient = User::with('roleAssignment.role')->where('cpf', $recipientCpf)->first();
+        $fromRole = $user->activeRole()?->name ?? $user->roleAssignment?->role?->name ?? 'User';
+        $toRole = $recipient?->activeRole()?->name ?? $recipient?->roleAssignment?->role?->name ?? 'User';
+
+        DB::transaction(function () use ($indent, $user, $recipientCpf, $action, $isRejected, $remark, $fromRole, $toRole) {
             // 1. Add a movement
             Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
+                'from_role' => $fromRole,
                 'to' => $recipientCpf,
+                'to_role' => $toRole,
                 'action' => $action,
                 'is_rejected' => $isRejected,
                 'remark' => $remark,
@@ -545,7 +571,6 @@ class IndentController extends Controller
             ]);
         });
 
-        $recipient = User::where('cpf', $recipientCpf)->first();
         $recipientName = $recipient ? "{$recipient->name} ({$recipient->cpf})" : $recipientCpf;
 
         $flashMessage = match (true) {
@@ -596,7 +621,9 @@ class IndentController extends Controller
             };
         }
 
-        DB::transaction(function () use ($indent, $user, $newStatus, $action, $remark, $request) {
+        $userRole = $user->activeRole()?->name ?? $user->roleAssignment?->role?->name ?? 'CE';
+
+        DB::transaction(function () use ($indent, $user, $newStatus, $action, $remark, $request, $userRole) {
             $indent->update([
                 'status' => $newStatus,
             ]);
@@ -604,7 +631,9 @@ class IndentController extends Controller
             $movement = Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
+                'from_role' => $userRole,
                 'to' => $user->cpf,
+                'to_role' => $userRole,
                 'action' => $action,
                 'is_rejected' => false,
                 'remark' => $remark,

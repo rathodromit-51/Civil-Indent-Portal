@@ -109,10 +109,10 @@
             &larr; Back to Indents
         </a>
         <h1 class="form-title">
-            ✏️ Edit Draft Indent <span style="font-family: monospace; color: var(--primary);">{{ $indent->number }}</span>
+            Edit Draft Indent <span style="font-family: monospace; color: var(--primary);">{{ $indent->number }}</span>
         </h1>
         <div class="alert" style="background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 0.85rem;">
-            ⚠️ <strong>Specification Rule FRIND-04:</strong> This indent is currently a draft and can be edited freely. <em>Once submitted, it can no longer be edited</em> and will be forwarded to the Installation Manager.
+            <strong>Specification Rule FRIND-04:</strong> This indent is currently a draft and can be edited freely. <em>Once submitted, it can no longer be edited</em> and will be forwarded to the Installation Manager.
         </div>
     </div>
 
@@ -135,7 +135,7 @@
                        autofocus>
                 <div class="form-hint">A concise summary of the required civil work.</div>
                 @error('title')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -157,7 +157,7 @@
                         @endforeach
                     </select>
                     @error('work_type')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -177,7 +177,7 @@
                         @endforeach
                     </select>
                     @error('installation_id')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -200,7 +200,7 @@
                         @endforeach
                     </select>
                     @error('priority')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -216,7 +216,7 @@
                            class="form-control @error('required_by') is-invalid @enderror"
                            required>
                     @error('required_by')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
@@ -231,7 +231,7 @@
                           rows="4"
                           class="form-control @error('description') is-invalid @enderror">{{ old('description', $indent->description) }}</textarea>
                 @error('description')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -245,7 +245,7 @@
                           rows="3"
                           class="form-control @error('justification') is-invalid @enderror">{{ old('justification', $indent->justification) }}</textarea>
                 @error('justification')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -253,7 +253,7 @@
             <div class="form-group" style="background: #ffffff; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
                 <label for="attachments" class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
                     <span style="display: flex; align-items: center; gap: 6px;">
-                        📎 Attachments (Max 100 MB per file)
+                        Attachments (Max 100 MB per file)
                     </span>
                     <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">
                         Multiple allowed
@@ -270,7 +270,6 @@
                             @foreach($indent->attachments as $att)
                                 <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 6px;">
                                     <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
-                                        <span style="font-size: 1.2rem;">📄</span>
                                         <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                             <a href="{{ route('attachments.download', $att) }}" style="font-weight: 600; color: var(--primary); text-decoration: none; font-size: 0.85rem;">
                                                 {{ $att->original_name }}
@@ -281,7 +280,7 @@
                                         </div>
                                     </div>
                                     <a href="{{ route('attachments.download', $att) }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; background: white;">
-                                        📥 Download
+                                        Download
                                     </a>
                                 </div>
                             @endforeach
@@ -304,18 +303,18 @@
                         Supported formats: Images, PDF, Word, Excel, PowerPoint, ZIP, CAD (DWG, DXF), GIS (KML). Max 100 MB per file.
                     </div>
                     @error('attachments')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                     @error('attachments.*')
-                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
 
             {{-- Submission Remarks --}}
             <div class="form-group" style="background: #f8fafc; border: 1px dashed var(--border-color); padding: 16px; border-radius: 8px;">
-                <label for="remark" class="form-label" style="display: flex; align-items: center; gap: 6px;">
-                    💬 Submission Remarks / Notes (Applied when submitting)
+                <label for="remark" class="form-label">
+                    Submission Remarks / Notes (Applied when submitting)
                 </label>
                 <input type="text"
                        id="remark"
@@ -324,7 +323,7 @@
                        class="form-control @error('remark') is-invalid @enderror"
                        placeholder="e.g. Revised requirements and submitting for technical approval">
                 @error('remark')
-                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
@@ -341,7 +340,7 @@
                             value="draft"
                             class="btn btn-outline"
                             style="padding: 10px 20px; font-weight: 600; color: #b45309; border-color: #fde68a; background: #fffbeb;">
-                        💾 Update Draft
+                        Update Draft
                     </button>
 
                     {{-- Submit (First forward) --}}
@@ -351,7 +350,7 @@
                             class="btn btn-primary"
                             style="padding: 10px 24px; font-weight: 600;"
                             onclick="return confirm('Submit this indent now? Once submitted, it can NO LONGER be edited (FRIND-04).');">
-                        🚀 Submit Indent (Finalize & Forward)
+                        Submit Indent (Finalize & Forward)
                     </button>
                 </div>
             </div>

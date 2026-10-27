@@ -64,14 +64,6 @@
             color: #fef08a;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px 16px;
-            flex: 1;
-        }
-
         .navbar {
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
@@ -79,6 +71,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .navbar-brand {
@@ -94,7 +88,16 @@
         .navbar-user {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+            flex: 1;
         }
 
         .btn {
@@ -228,7 +231,6 @@
             pointer-events: none;
         }
 
-        /* Fallback for unstyled SVG icons in default pagination */
         nav[role="navigation"] svg {
             width: 16px !important;
             height: 16px !important;
@@ -245,14 +247,14 @@
 <body>
     <!-- @if(config('auth.auth_mode') === 'dev')
         <div class="dev-banner" id="dev-mode-banner">
-            ⚠️ <strong>DEV MODE ACTIVE:</strong> Authenticating via <code>DevAuthenticator</code>. Fixed password: <code>{{ config('auth.dev_password', 'secret123') }}</code> works for any seeded CPF.
+            <strong>DEV MODE ACTIVE:</strong> Authenticating via <code>DevAuthenticator</code>. Fixed password: <code>{{ config('auth.dev_password', 'secret123') }}</code> works for any seeded CPF.
         </div>
     @endif -->
 
     @auth
         <nav class="navbar">
             <a href="{{ route('dashboard') }}" class="navbar-brand">
-                🏗️ Civil Indent Portal
+                Civil Indent Portal
             </a>
             <div class="navbar-user">
                 @php
@@ -261,7 +263,7 @@
                 <a href="{{ route('indents.inbox') }}"
                     class="btn {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? 'btn-primary' : 'btn-outline' }}"
                     style="padding: 6px 12px; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 6px;">
-                    📥 With Me
+                    With Me
                     @if($navWithMeCount > 0)
                         <span style="background: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#ffffff' : '#2563eb' }}; color: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#2563eb' : '#ffffff' }}; font-weight: 700; border-radius: 9999px; padding: 1px 7px; font-size: 0.72rem;">
                             {{ $navWithMeCount }}
@@ -271,25 +273,25 @@
                 <a href="{{ route('indents.index') }}"
                     class="btn {{ request()->routeIs('indents.index') && !in_array(request('tab'), ['with-me', 'holder']) && !request()->routeIs('indents.inbox') ? 'btn-primary' : 'btn-outline' }}"
                     style="padding: 6px 12px; font-size: 0.825rem;">
-                    📋 All Indents
+                    All Indents
                 </a>
                 @if(Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.areas.index') }}"
                         class="btn {{ request()->routeIs('admin.areas.*') || request()->routeIs('admin.installations.*') ? 'btn-primary' : 'btn-outline' }}"
                         style="padding: 6px 12px; font-size: 0.825rem;">
-                        🗺️ Master Data
+                        Master Data
                     </a>
                     <a href="{{ route('admin.roles.index') }}"
                         class="btn {{ request()->routeIs('admin.roles.*') ? 'btn-primary' : 'btn-outline' }}"
                         style="padding: 6px 12px; font-size: 0.825rem;">
-                        🛡️ Roles (§3)
+                        Roles (§3)
                     </a>
                 @endif
                 @can('viewAny', \App\Models\RoleAssignment::class)
                     <a href="{{ route('admin.users-roles.index') }}"
                         class="btn {{ request()->routeIs('admin.users-roles.*') ? 'btn-primary' : 'btn-outline' }}"
                         style="padding: 6px 12px; font-size: 0.825rem;">
-                        👥 Users & Roles
+                        Users & Roles
                     </a>
                 @endcan
                 <span style="font-size: 0.875rem; color: var(--text-muted);">
@@ -306,19 +308,19 @@
     <main class="container">
         @if(session('status'))
             <div class="alert alert-success">
-                ✅ {{ session('status') }}
+                {{ session('status') }}
             </div>
         @endif
 
         @if(session('success'))
             <div class="alert alert-success">
-                ✅ {{ session('success') }}
+                {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
             <div class="alert alert-danger">
-                ⚠️ {{ session('error') }}
+                {{ session('error') }}
             </div>
         @endif
 
@@ -335,7 +337,6 @@
 
         @yield('content')
     </main>
-
 </body>
 
 </html>

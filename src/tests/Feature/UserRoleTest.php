@@ -469,7 +469,7 @@ class UserRoleTest extends TestCase
         // 2. UI renders 'Current User' indicator and no remove button on own row
         $screenResponse = $this->actingAs($this->admin)->get(route('admin.users-roles.index', ['search' => 'ADMIN001']));
         $screenResponse->assertOk();
-        $screenResponse->assertSee('🔒 Current User');
+        $screenResponse->assertSee('Current User');
     }
 
     /**

@@ -98,7 +98,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <h2 style="font-size: 1.125rem; font-weight: 600;">Your Account Profile</h2>
         <span class="status-badge status-active">
-            ● Active Account
+            Active Account
         </span>
     </div>
 
@@ -129,17 +129,17 @@
     <div class="card" style="margin-top: 24px; background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%); border: 1px solid #bfdbfe;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div>
-                <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">⚙️ Super Admin Control Center</h3>
+                <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e3a8a;">Super Admin Control Center</h3>
                 <p style="color: #475569; font-size: 0.875rem; margin-top: 4px;">
                     You have system administrator privileges to configure Master Data (Areas, Installations) and verify Role Scopes (§3).
                 </p>
             </div>
             <div style="display: flex; gap: 10px;">
                 <a href="{{ route('admin.areas.index') }}" class="btn btn-primary" style="font-size: 0.875rem;">
-                    🗺️ Manage Master Data
+                    Manage Master Data
                 </a>
                 <a href="{{ route('admin.roles.index') }}" class="btn btn-outline" style="background: white; font-size: 0.875rem;">
-                    🛡️ View Roles (§3)
+                    View Roles (§3)
                 </a>
             </div>
         </div>
@@ -151,7 +151,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <div>
                 <h3 style="font-size: 1.05rem; font-weight: 600; color: #b91c1c;">
-                    🛠️ Dev Mode: Seeded Accounts ({{ $seededUsers->count() }})
+                    Dev Mode: Seeded Accounts ({{ $seededUsers->count() }})
                 </h3>
                 <p style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 2px;">
                     In dev mode, any of these active CPF numbers can log in using password <code>{{ config('auth.dev_password', 'secret123') }}</code>.

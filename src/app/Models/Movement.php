@@ -15,7 +15,9 @@ class Movement extends Model
     protected $fillable = [
         'indent_id',
         'from',
+        'from_role',
         'to',
+        'to_role',
         'action',
         'is_rejected',
         'remark',
@@ -82,5 +84,29 @@ class Movement extends Model
     public function attachments(): HasMany
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    /**
+     * Role of the 'from' user at the time of movement, with fallback to user's active role.
+     */
+    public function getFromRoleNameAttribute(): string
+    {
+        return $this->from_role
+            ?? $this->fromUser?->activeRole()?->name
+            ?? $this->fromUser?->roleAssignment?->role?->name
+            ?? $this->fromUser?->designation
+            ?? 'User';
+    }
+
+    /**
+     * Role of the 'to' user at the time of movement, with fallback to user's active role.
+     */
+    public function getToRoleNameAttribute(): string
+    {
+        return $this->to_role
+            ?? $this->toUser?->activeRole()?->name
+            ?? $this->toUser?->roleAssignment?->role?->name
+            ?? $this->toUser?->designation
+            ?? 'User';
     }
 }

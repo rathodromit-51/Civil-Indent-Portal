@@ -5,7 +5,7 @@
 @section('content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
     <div>
-        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">🛡️ System Roles & Scope Types (Spec §3)</h1>
+        <h1 style="font-size: 1.75rem; font-weight: 700; color: var(--text-color);">System Roles & Scope Types (Spec §3)</h1>
         <p style="color: var(--text-muted); font-size: 0.875rem; margin-top: 4px;">
             Core authorization roles seeded per Functional Requirements §3.
         </p>
@@ -20,7 +20,7 @@
 <!-- Specification Reference Callout -->
 <div class="card" style="margin-bottom: 24px; background: #f0fdf4; border: 1px solid #86efac; border-left: 5px solid #22c55e;">
     <h3 style="font-size: 1rem; font-weight: 700; color: #166534; margin-bottom: 6px;">
-        📌 Specification Rules (§3 Role Architecture & Indent Journey)
+        Specification Rules (§3 Role Architecture & Indent Journey)
     </h3>
     <ul style="margin-left: 20px; font-size: 0.875rem; color: #15803d; line-height: 1.6;">
         <li><strong>User (Normal user):</strong> <code>creates the indent</code> (Scope: <code>none</code>).</li>
@@ -93,26 +93,26 @@
                         <td style="padding: 14px 20px;">
                             @if($role->scope_type === 'installation')
                                 <span style="display: inline-block; padding: 3px 10px; background: #e0f2fe; color: #0369a1; border-radius: 999px; font-weight: 600; font-size: 0.775rem;">
-                                    🏢 Installation
+                                    Installation
                                 </span>
                             @elseif($role->scope_type === 'area')
                                 <span style="display: inline-block; padding: 3px 10px; background: #fef3c7; color: #b45309; border-radius: 999px; font-weight: 600; font-size: 0.775rem;">
-                                    🗺️ Area
+                                    Area
                                 </span>
                             @else
                                 <span style="display: inline-block; padding: 3px 10px; background: #f1f5f9; color: #475569; border-radius: 999px; font-weight: 600; font-size: 0.775rem;">
-                                    🌐 None (Global)
+                                    None (Global)
                                 </span>
                             @endif
                         </td>
                         <td style="padding: 14px 20px;">
                             @if($role->multi_holder)
                                 <span style="display: inline-flex; align-items: center; gap: 4px; color: #15803d; font-weight: 700; background: #dcfce7; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
-                                    ✓ Yes (Multiple)
+                                    Yes (Multiple)
                                 </span>
                             @else
                                 <span style="display: inline-flex; align-items: center; gap: 4px; color: #64748b; font-weight: 600; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">
-                                    ✕ Single Only
+                                    Single Only
                                 </span>
                             @endif
                         </td>

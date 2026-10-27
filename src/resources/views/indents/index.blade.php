@@ -177,9 +177,9 @@
     <div>
         <h1 class="page-title">
             @if(in_array($tab, ['with-me', 'holder']))
-                📥 Inbox — With Me
+                Inbox — With Me
             @else
-                📋 Civil Work Indents
+                Civil Work Indents
             @endif
         </h1>
         <p style="color: var(--text-muted); font-size: 0.875rem;">
@@ -191,7 +191,7 @@
         </p>
     </div>
     <a href="{{ route('indents.create') }}" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;">
-        ➕ Raise New Indent
+        Raise New Indent
     </a>
 </div>
 
@@ -202,28 +202,24 @@
             <div class="stat-label">Created by Me</div>
             <div class="stat-val">{{ $myCount }}</div>
         </div>
-        <div style="font-size: 1.8rem;">✍️</div>
     </div>
     <div class="stat-card">
         <div>
             <div class="stat-label">My Drafts (Editable)</div>
             <div class="stat-val" style="color: #b45309;">{{ $myDraftsCount }}</div>
         </div>
-        <div style="font-size: 1.8rem;">📝</div>
     </div>
     <div class="stat-card">
         <div>
             <div class="stat-label">My Submitted Indents</div>
             <div class="stat-val" style="color: #047857;">{{ $mySubmittedCount }}</div>
         </div>
-        <div style="font-size: 1.8rem;">🚀</div>
     </div>
     <div class="stat-card">
         <div>
             <div class="stat-label">Currently Assigned to Me</div>
             <div class="stat-val" style="color: #1d4ed8;">{{ $holderCount }}</div>
         </div>
-        <div style="font-size: 1.8rem;">📬</div>
     </div>
 </div>
 
@@ -231,28 +227,28 @@
 <div class="tab-bar">
     <a href="{{ route('indents.index', ['tab' => 'with-me']) }}"
        class="tab-link {{ in_array($tab, ['with-me', 'holder']) ? 'active' : '' }}">
-        📥 With Me
+        With Me
         <span class="tab-badge" style="{{ $withMeCount > 0 ? 'background: #eff6ff; color: #2563eb; font-weight: 700;' : '' }}">{{ $withMeCount }}</span>
     </a>
     <a href="{{ route('indents.index', ['tab' => 'my']) }}"
        class="tab-link {{ $tab === 'my' ? 'active' : '' }}">
-        ✍️ Created by Me
+        Created by Me
         <span class="tab-badge">{{ $myCount }}</span>
     </a>
     <a href="{{ route('indents.index', ['tab' => 'drafts']) }}"
        class="tab-link {{ $tab === 'drafts' ? 'active' : '' }}">
-        📝 My Drafts
+        My Drafts
         <span class="tab-badge">{{ $myDraftsCount }}</span>
     </a>
     @if($flaggedCount > 0)
         <a href="{{ route('indents.index', ['tab' => 'flagged']) }}"
            class="tab-link {{ $tab === 'flagged' ? 'active' : '' }}" style="color: #dc2626;">
-            🚩 Flagged ({{ $flaggedCount }})
+            Flagged ({{ $flaggedCount }})
         </a>
     @endif
     <a href="{{ route('indents.index', ['tab' => 'all']) }}"
        class="tab-link {{ $tab === 'all' ? 'active' : '' }}">
-        🌐 All Visible Indents
+        All Visible Indents
     </a>
 </div>
 
@@ -302,7 +298,7 @@
 
         <div style="display: flex; gap: 8px;">
             <button type="submit" class="btn btn-primary" style="padding: 8px 16px;">
-                🔍 Filter
+                Filter
             </button>
             @if($search !== '' || ($status && $status !== 'all') || ($priority && $priority !== 'all'))
                 <a href="{{ route('indents.index', ['tab' => $tab]) }}" class="btn btn-outline" style="padding: 8px 14px;">
@@ -348,61 +344,32 @@
                                 {{ $indent->title }}
                             </a>
                             <div style="font-size: 0.775rem; color: #64748b; margin-top: 2px;">
-                                🏷️ {{ $indent->work_type }}
+                                {{ $indent->work_type }}
                             </div>
                         </td>
 
                         {{-- Installation & Area --}}
                         <td style="padding: 14px 18px; font-size: 0.825rem; white-space: nowrap;">
                             <div style="font-weight: 600; color: #1e293b;">
-                                🏭 {{ $indent->installation?->name ?? '—' }}
+                                {{ $indent->installation?->name ?? '—' }}
                             </div>
                             <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
-                                🗺️ {{ $indent->installation?->area?->name ?? '—' }}
+                                {{ $indent->installation?->area?->name ?? '—' }}
                             </div>
                         </td>
 
                         {{-- Priority --}}
                         <td style="padding: 14px 18px; white-space: nowrap;">
-                            @php
-                                $priorityClass = match($indent->priority->value ?? '') {
-                                    'Urgent' => 'badge-priority-urgent',
-                                    'High' => 'badge-priority-high',
-                                    'Low' => 'badge-priority-low',
-                                    default => 'badge-priority-medium',
-                                };
-                            @endphp
-                            <span class="badge {{ $priorityClass }}">
-                                {{ $indent->priority->value ?? 'Medium' }}
-                            </span>
+                            <x-priority-badge :priority="$indent->priority" />
                         </td>
 
                         {{-- State & Status --}}
                         <td style="padding: 14px 18px; white-space: nowrap;">
-                            @if($indent->is_draft)
-                                <span class="badge badge-draft">
-                                    📝 Draft (Editable)
-                                </span>
-                            @else
-                                @php
-                                    $statusClass = match($indent->status->value ?? '') {
-                                        'Open' => 'badge-open',
-                                        'Assigned' => 'badge-assigned',
-                                        'InProgress' => 'badge-inprogress',
-                                        'Closed' => 'badge-closed',
-                                        default => 'badge-open',
-                                    };
-                                @endphp
-                                <span class="badge {{ $statusClass }}">
-                                    🚀 {{ $indent->status->value ?? 'Open' }}
-                                </span>
-                                @if($indent->is_rejected)
-                                    <div style="margin-top: 4px;">
-                                        <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.7rem;">
-                                            🚩 Flagged (Rejected)
-                                        </span>
-                                    </div>
-                                @endif
+                            <x-status-badge :indent="$indent" :status="$indent->status" :isDraft="$indent->is_draft" :isRejected="$indent->is_rejected" />
+                            @if(!$indent->is_draft && $indent->latestMovement)
+                                <div style="font-size: 0.725rem; color: #64748b; margin-top: 3px;">
+                                    {{ ucfirst(str_replace('_', ' ', $indent->latestMovement->action)) }}{{ $indent->latestMovement->to_role ? ' (' . $indent->latestMovement->to_role . ')' : '' }}
+                                </div>
                             @endif
                         </td>
 
@@ -442,7 +409,7 @@
                                     <a href="{{ route('indents.show', $indent) }}#forward-form-section"
                                        class="btn btn-primary"
                                        style="padding: 5px 12px; font-size: 0.775rem; font-weight: 600;">
-                                        ⏩ Forward
+                                        Forward
                                     </a>
                                 @endif
 
@@ -450,7 +417,7 @@
                                     <a href="{{ route('indents.edit', $indent) }}"
                                        class="btn btn-outline"
                                        style="padding: 5px 12px; font-size: 0.775rem; color: #b45309; border-color: #fde68a; background: #fffbeb;">
-                                        ✏️ Edit Draft
+                                        Edit Draft
                                     </a>
 
                                     <form action="{{ route('indents.destroy', $indent) }}"
@@ -462,7 +429,7 @@
                                         <button type="submit"
                                                 class="btn btn-outline"
                                                 style="padding: 5px 10px; font-size: 0.775rem; color: #dc2626; border-color: #fecaca; background: #fef2f2;">
-                                            🗑️
+                                            Delete
                                         </button>
                                     </form>
                                 @endif
@@ -470,7 +437,7 @@
                                 <a href="{{ route('indents.show', $indent) }}"
                                    class="btn btn-outline"
                                    style="padding: 5px 12px; font-size: 0.775rem; background: white;">
-                                    👁️ View
+                                    View
                                 </a>
                             </div>
                         </td>
@@ -478,7 +445,6 @@
                 @empty
                     <tr>
                         <td colspan="8" style="padding: 48px 20px; text-align: center; color: var(--text-muted);">
-                            <div style="font-size: 2.5rem; margin-bottom: 12px;">📭</div>
                             <div style="font-size: 1rem; font-weight: 600; color: #334155; margin-bottom: 6px;">
                                 No indents found
                             </div>
@@ -494,7 +460,7 @@
                                 @endif
                             </p>
                             <a href="{{ route('indents.create') }}" class="btn btn-primary" style="padding: 8px 18px; font-size: 0.85rem;">
-                                ➕ Raise New Indent
+                                Raise New Indent
                             </a>
                         </td>
                     </tr>

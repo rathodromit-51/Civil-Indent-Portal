@@ -21,6 +21,13 @@ class IndentPolicy
      */
     public function view(User $user, Indent $indent): Response
     {
+        // Drafts are strictly private to their creator
+        if ($indent->is_draft) {
+            return ($user->cpf === $indent->creator_cpf || $user->isSuperAdmin())
+                ? Response::allow()
+                : Response::deny('Only the creator can view this draft indent.');
+        }
+
         // Creator and current holder can always view
         if ($user->cpf === $indent->creator_cpf || $user->cpf === $indent->current_holder_cpf) {
             return Response::allow();
@@ -31,18 +38,23 @@ class IndentPolicy
             return Response::allow();
         }
 
-        // Associated workflow participant
-        if ($indent->participants()->where('cpf', $user->cpf)->exists()) {
+        // Everyone who ever received or participated in the indent
+        if ($indent->relationLoaded('participants')) {
+            if ($indent->participants->contains('cpf', $user->cpf)) {
+                return Response::allow();
+            }
+        } elseif ($indent->participants()->where('cpf', $user->cpf)->exists()) {
             return Response::allow();
         }
 
-        // Drafts are strictly private to their creator
-        if ($indent->is_draft) {
-            return Response::deny('Only the creator can view this draft indent.');
-        }
-
-        // Any assigned role holder can view published indents
-        if ($user->roleAssignment()->exists()) {
+        // Check movements if received or sent
+        if ($indent->relationLoaded('movements')) {
+            if ($indent->movements->contains('to', $user->cpf) || $indent->movements->contains('from', $user->cpf)) {
+                return Response::allow();
+            }
+        } elseif ($indent->movements()->where(function ($q) use ($user) {
+            $q->where('to', $user->cpf)->orWhere('from', $user->cpf);
+        })->exists()) {
             return Response::allow();
         }
 

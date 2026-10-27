@@ -163,7 +163,7 @@
                 @if($indent->is_draft && Auth::user()->cpf === $indent->creator_cpf)
                     <a href="{{ route('indents.edit', $indent) }}" class="btn btn-outline"
                         style="color: #b45309; border-color: #fde68a; background: #fffbeb; font-weight: 600;">
-                        ✏️ Edit Draft
+                        Edit Draft
                     </a>
 
                     <form action="{{ route('indents.destroy', $indent) }}" method="POST" style="display: inline; margin: 0;"
@@ -172,7 +172,7 @@
                         @method('DELETE')
                         <button type="submit" class="btn btn-outline"
                             style="color: #dc2626; border-color: #fecaca; background: #fef2f2;">
-                            🗑️ Delete
+                            Delete
                         </button>
                     </form>
                 @endif
@@ -184,7 +184,6 @@
             @php $rejectionMvt = $indent->latestRejectionMovement(); @endphp
             <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.08);">
                 <div style="display: flex; align-items: flex-start; gap: 14px;">
-                    <span style="font-size: 2rem; line-height: 1;">🚩</span>
                     <div style="flex: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                             <strong style="color: #991b1b; font-size: 1.05rem;">
@@ -197,7 +196,7 @@
                             </strong>
                             @if($rejectionMvt)
                                 <span style="font-size: 0.8rem; color: #b91c1c; font-weight: 600;">
-                                    📅 {{ $rejectionMvt->created_at->format('d M Y, H:i') }} ({{ $rejectionMvt->created_at->diffForHumans() }})
+                                    {{ $rejectionMvt->created_at->format('d M Y, H:i') }} ({{ $rejectionMvt->created_at->diffForHumans() }})
                                 </span>
                             @endif
                         </div>
@@ -219,75 +218,68 @@
             <div class="meta-item">
                 <span class="meta-label">Lifecycle Status</span>
                 <span class="meta-value" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    @if($indent->is_draft)
-                        <span class="badge badge-draft">📝 Draft (Editable)</span>
-                    @else
-                        <span class="badge badge-open">🚀 {{ $indent->status->value ?? 'Open' }}</span>
-                        @if($indent->is_rejected)
-                            <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
-                                🚩 Flagged (Rejected)
-                            </span>
-                        @endif
-                    @endif
+                    <x-status-badge :status="$indent->status" :isDraft="$indent->is_draft" :isRejected="$indent->is_rejected" />
                 </span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Priority</span>
                 <span class="meta-value">
-                    @php
-                        $priorityClass = match ($indent->priority->value ?? '') {
-                            'Urgent' => 'badge-priority-urgent',
-                            'High' => 'badge-priority-high',
-                            'Low' => 'badge-priority-low',
-                            default => 'badge-priority-medium',
-                        };
-                    @endphp
-                    <span class="badge {{ $priorityClass }}">
-                        ⚡ {{ $indent->priority->value ?? 'Medium' }}
-                    </span>
+                    <x-priority-badge :priority="$indent->priority" />
                 </span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Work Type</span>
-                <span class="meta-value">🏷️ {{ $indent->work_type }}</span>
+                <span class="meta-value">{{ $indent->work_type }}</span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Target Installation</span>
-                <span class="meta-value">🏭 {{ $indent->installation?->name ?? '—' }}
+                <span class="meta-value">{{ $indent->installation?->name ?? '—' }}
                     ({{ $indent->installation?->code }})</span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Operational Area</span>
-                <span class="meta-value">🗺️ {{ $indent->installation?->area?->name ?? '—' }}</span>
+                <span class="meta-value">{{ $indent->installation?->area?->name ?? '—' }}</span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Required By Date</span>
-                <span class="meta-value">📅 {{ $indent->required_by ? $indent->required_by->format('d M Y') : '—' }}</span>
+                <span class="meta-value">{{ $indent->required_by ? $indent->required_by->format('d M Y') : '—' }}</span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Creator</span>
-                <span class="meta-value">
-                    👤 {{ $indent->creator?->name ?? $indent->creator_cpf }}
-                    <span
-                        style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->creator_cpf }})</span>
+                <span class="meta-value" style="display: flex; flex-direction: column; gap: 4px;">
+                    <div>
+                        {{ $indent->creator?->name ?? $indent->creator_cpf }}
+                        <span style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->creator_cpf }})</span>
+                    </div>
+                    @if($cRole = ($indent->creator?->roleAssignment?->role?->name ?? $indent->creator?->designation))
+                        <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
+                            {{ $cRole }}
+                        </span>
+                    @endif
                 </span>
             </div>
 
             <div class="meta-item">
                 <span class="meta-label">Current Holder</span>
-                <span class="meta-value">
+                <span class="meta-value" style="display: flex; flex-direction: column; gap: 4px;">
                     @if($indent->is_draft)
                         <span style="color: #64748b; font-style: italic;">Creator (Draft)</span>
                     @else
-                        👤 {{ $indent->currentHolder?->name ?? $indent->current_holder_cpf }}
-                        <span
-                            style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->current_holder_cpf }})</span>
+                        <div>
+                            {{ $indent->currentHolder?->name ?? $indent->current_holder_cpf }}
+                            <span style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->current_holder_cpf }})</span>
+                        </div>
+                        @if($hRole = ($indent->currentHolder?->roleAssignment?->role?->name ?? $indent->currentHolder?->designation))
+                            <span class="badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
+                                {{ $hRole }}
+                            </span>
+                        @endif
                     @endif
                 </span>
             </div>
@@ -297,8 +289,8 @@
         <div class="card"
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
             <h2
-                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                📄 Technical Scope of Work
+                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
+                Technical Scope of Work
             </h2>
             @if($indent->description)
                 <div style="font-size: 0.9rem; line-height: 1.6; color: #334155; white-space: pre-wrap;">
@@ -312,8 +304,8 @@
         <div class="card"
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
             <h2
-                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                💡 Operational & Safety Justification
+                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
+                Operational & Safety Justification
             </h2>
             @if($indent->justification)
                 <div style="font-size: 0.9rem; line-height: 1.6; color: #334155; white-space: pre-wrap;">
@@ -330,8 +322,8 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h2
-                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; margin: 0;">
-                    📎 Attached Documents & Drawings
+                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
+                    Attached Documents & Drawings
                 </h2>
                 <span
                     style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 10px; border-radius: 9999px; font-weight: 700;">
@@ -343,22 +335,12 @@
                 <div style="display: grid; gap: 10px;">
                     @foreach($indent->attachments as $att)
                         @php
-                            $ext = strtolower(pathinfo($att->original_name, PATHINFO_EXTENSION));
-                            $icon = match ($ext) {
-                                'pdf' => '📕',
-                                'dwg', 'dxf', 'kml' => '📐',
-                                'xls', 'xlsx', 'csv' => '📊',
-                                'doc', 'docx' => '📝',
-                                'ppt', 'pptx' => '📽️',
-                                'zip' => '📦',
-                                'jpg', 'jpeg', 'png', 'gif', 'svg', 'webp' => '🖼️',
-                                default => '📄',
-                            };
+                            $ext = strtoupper(pathinfo($att->original_name, PATHINFO_EXTENSION) ?: 'FILE');
                         @endphp
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; flex-wrap: wrap; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                <span style="font-size: 1.5rem;">{{ $icon }}</span>
+                                <span style="font-size: 0.72rem; font-weight: 700; font-family: monospace; background: #e2e8f0; color: #334155; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.05em;">{{ $ext }}</span>
                                 <div style="min-width: 0;">
                                     <div style="font-weight: 600; color: #0f172a; font-size: 0.9rem; word-break: break-all;">
                                         {{ $att->original_name }}
@@ -377,7 +359,7 @@
                             <div style="display: flex; gap: 8px; align-items: center;">
                                 <a href="{{ route('attachments.download', $att) }}" class="btn btn-outline"
                                     style="background: #ffffff; color: var(--primary); border-color: #93c5fd; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                                    📥 Download
+                                    Download
                                 </a>
 
                                 @can('delete', $att)
@@ -387,8 +369,8 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline"
-                                            style="color: #dc2626; border-color: #fecaca; background: #ffffff; font-size: 0.8rem; padding: 6px 10px;">
-                                            🗑️
+                                            style="color: #dc2626; border-color: #fecaca; background: #ffffff; font-size: 0.8rem; padding: 6px 12px;">
+                                            Delete
                                         </button>
                                     </form>
                                 @endcan
@@ -410,8 +392,8 @@
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                             <span
-                                style="font-size: 0.875rem; font-weight: 700; color: #1e293b; display: inline-flex; align-items: center; gap: 6px;">
-                                ➕ Attach Files to this Indent
+                                style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">
+                                Attach Files to this Indent
                             </span>
                             <span style="font-size: 0.75rem; color: #64748b;">
                                 Max 100 MB per file &bull; Allowed: Images, PDF, CAD (DWG/DXF), Office, ZIP, KML
@@ -425,20 +407,20 @@
                                 accept=".jpg,.jpeg,.png,.gif,.svg,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.dwg,.dxf,.kml">
 
                             <button type="submit" class="btn btn-primary"
-                                style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                                📎 Upload & Attach
+                                style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600;">
+                                Upload & Attach
                             </button>
                         </div>
 
                         @error('attachments')
                             <div style="color: #dc2626; font-size: 0.775rem; margin-top: 6px; font-weight: 600;">
-                                ⚠️ {{ $message }}
+                                {{ $message }}
                             </div>
                         @enderror
 
                         @error('attachments.*')
                             <div style="color: #dc2626; font-size: 0.775rem; margin-top: 6px; font-weight: 600;">
-                                ⚠️ {{ $message }}
+                                {{ $message }}
                             </div>
                         @enderror
                     </form>
@@ -452,8 +434,8 @@
                 style="background: #f0fdf4; border: 2px solid #16a34a; padding: 24px; border-radius: 10px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #bbf7d0; padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #166534; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            👷 Site Execution Panel (Civil Engineer)
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #166534; margin: 0;">
+                            Site Execution Panel (Civil Engineer)
                         </h2>
                         <p style="font-size: 0.825rem; color: #15803d; margin-top: 4px; margin-bottom: 0;">
                             You are the assigned on-site Civil Engineer (<strong>{{ Auth::user()->name }}</strong>). Manage execution milestones below.
@@ -475,7 +457,7 @@
                                 <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #86efac; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
                                     <input type="radio" name="status" value="Assigned" checked style="accent-color: #16a34a; width: 18px; height: 18px;">
                                     <div>
-                                        <div style="font-weight: 700; color: #166534; font-size: 0.9rem;">🤝 1. Accept Indent Work</div>
+                                        <div style="font-weight: 700; color: #166534; font-size: 0.9rem;">1. Accept Indent Work</div>
                                         <div style="font-size: 0.75rem; color: #4b5563;">Accept task and take site ownership</div>
                                     </div>
                                 </label>
@@ -485,7 +467,7 @@
                                 <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
                                     <input type="radio" name="status" value="InProgress" {{ $indent->status === \App\Enums\IndentStatus::ASSIGNED ? 'checked' : '' }} style="accent-color: #2563eb; width: 18px; height: 18px;">
                                     <div>
-                                        <div style="font-weight: 700; color: #1e40af; font-size: 0.9rem;">🚧 2. Start Physical Work</div>
+                                        <div style="font-weight: 700; color: #1e40af; font-size: 0.9rem;">2. Start Physical Work</div>
                                         <div style="font-size: 0.75rem; color: #4b5563;">Mobilize contractor & materials on site</div>
                                     </div>
                                 </label>
@@ -494,7 +476,7 @@
                             <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #d8b4fe; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
                                 <input type="radio" name="status" value="Closed" {{ $indent->status === \App\Enums\IndentStatus::IN_PROGRESS ? 'checked' : '' }} style="accent-color: #7c3aed; width: 18px; height: 18px;">
                                 <div>
-                                    <div style="font-weight: 700; color: #6b21a8; font-size: 0.9rem;">🏁 3. Complete & Handover</div>
+                                    <div style="font-weight: 700; color: #6b21a8; font-size: 0.9rem;">3. Complete & Handover</div>
                                     <div style="font-size: 0.75rem; color: #4b5563;">Finish physical work and close indent</div>
                                 </div>
                             </label>
@@ -512,15 +494,15 @@
 
                     <div style="margin-bottom: 16px;">
                         <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 6px;">
-                            📎 Attach Inspection Photos, Measurement Sheets or Completion Reports:
+                            Attach Inspection Photos, Measurement Sheets or Completion Reports:
                         </label>
                         <input type="file" name="attachments[]" multiple class="form-control"
                             style="width: 100%; padding: 8px 12px; border: 1px solid #86efac; border-radius: 6px; font-size: 0.85rem; background: white;">
                     </div>
 
                     <button type="submit" class="btn btn-primary"
-                        style="background: #16a34a; border-color: #15803d; color: white; padding: 10px 24px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                        💾 Update Execution Status
+                        style="background: #16a34a; border-color: #15803d; color: white; padding: 10px 24px; font-size: 0.9rem; font-weight: 700;">
+                        Update Execution Status
                     </button>
                 </form>
             </div>
@@ -534,8 +516,8 @@
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2
-                            style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;">
-                            ⏩ Workflow Actions: Forward or Return
+                            style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0;">
+                            Workflow Actions: Forward or Return
                         </h2>
                         <p style="font-size: 0.825rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
                             You currently hold this indent (<strong>{{ Auth::user()->name }}</strong>). Choose the next
@@ -545,12 +527,12 @@
                     <div style="display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
                         <button type="button" id="tab-btn-forward" onclick="switchActionTab('Forward')" class="btn btn-primary"
                             style="padding: 6px 14px; font-size: 0.825rem; font-weight: 600;">
-                            ⏩ Forward Indent
+                            Forward Indent
                         </button>
                         @if(isset($earlierParticipants) && $earlierParticipants->isNotEmpty())
                             <button type="button" id="tab-btn-return" onclick="switchActionTab('Return')" class="btn btn-outline"
                                 style="padding: 6px 14px; font-size: 0.825rem; font-weight: 600; border-color: transparent;">
-                                ↩️ Return to Earlier ({{ $earlierParticipants->count() }})
+                                Return to Earlier ({{ $earlierParticipants->count() }})
                             </button>
                         @endif
                     </div>
@@ -590,7 +572,6 @@
                         <div id="selected-recipient-card"
                             style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; align-items: center; justify-content: space-between;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.4rem;">👤</span>
                                 <div>
                                     <div style="font-weight: 700; color: #1e40af; font-size: 0.95rem;">
                                         <span id="selected-recipient-name"></span>
@@ -620,7 +601,7 @@
                                 style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;">
                             <div id="search-spinner"
                                 style="display: none; position: absolute; right: 12px; top: 12px; font-size: 0.85rem; color: #64748b;">
-                                ⏳ Searching...
+                                Searching...
                             </div>
 
                             {{-- Dropdown Results Menu --}}
@@ -638,7 +619,7 @@
                                         onchange="toggleRejectionReason(this.checked)"
                                         style="width: 18px; height: 18px; margin-top: 2px; accent-color: #dc2626;">
                                     <div>
-                                        <strong style="color: #92400e; font-size: 0.9rem;">⚠️ Forward with Rejection / Concerns</strong>
+                                        <strong style="color: #92400e; font-size: 0.9rem;">Forward with Rejection / Concerns</strong>
                                         <p style="font-size: 0.8rem; color: #b45309; margin-top: 2px; margin-bottom: 0;">
                                             As a management authority (IM, SAM, SM), you may reject this indent. Rejection reason is mandatory. The file will be flagged and returned.
                                         </p>
@@ -687,7 +668,7 @@
                                             </div>
                                         </div>
                                         <span style="font-size: 0.775rem; color: #2563eb; font-weight: 600;">
-                                            ↩️ Return here
+                                            Return here
                                         </span>
                                     </label>
                                 @endforeach
@@ -715,7 +696,7 @@
                         </span>
                         @error('remark')
                             <div style="color: #dc2626; font-size: 0.775rem; margin-top: 4px; font-weight: 600;">
-                                ⚠️ {{ $message }}
+                                {{ $message }}
                             </div>
                         @enderror
                     </div>
@@ -723,11 +704,11 @@
                     {{-- Action Buttons --}}
                     <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                         <button type="submit" id="submit-action-btn" class="btn btn-primary"
-                            style="padding: 10px 24px; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-                            ⏩ Forward Indent
+                            style="padding: 10px 24px; font-size: 0.9rem; font-weight: 600;">
+                            Forward Indent
                         </button>
                         <span id="validation-hint" style="font-size: 0.8rem; color: #dc2626; display: none;">
-                            ⚠️ Please select a recipient before submitting.
+                            Please select a recipient before submitting.
                         </span>
                     </div>
                 </form>
@@ -740,8 +721,8 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
                 <h2
-                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; margin: 0;">
-                    📜 Workflow Movements & Forwarding History
+                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
+                    Workflow Movements & Forwarding History
                 </h2>
                 <span
                     style="font-size: 0.75rem; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 9999px; font-weight: 600;">
@@ -752,50 +733,7 @@
             @if($indent->movements->isNotEmpty())
                 <div class="timeline">
                     @foreach($indent->movements as $mvt)
-                        <div class="timeline-item">
-                            <div class="timeline-dot"
-                                style="{{ $mvt->is_rejected ? 'background: #dc2626;' : ($mvt->action === 'Return' ? 'background: #d97706;' : '') }}">
-                            </div>
-                            <div
-                                style="background: #f8fafc; border: 1px solid {{ $mvt->is_rejected ? '#fecaca' : 'var(--border-color)' }}; border-radius: 8px; padding: 14px 18px;">
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 6px;">
-                                    <div style="display: flex; align-items: center; gap: 6px;">
-                                        @php
-                                            $actionColor = match (true) {
-                                                $mvt->is_rejected => 'color: #dc2626; background: #fef2f2; border: 1px solid #fecaca;',
-                                                $mvt->action === 'Return' => 'color: #b45309; background: #fffbeb; border: 1px solid #fde68a;',
-                                                default => 'color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0;',
-                                            };
-                                        @endphp
-                                        <span
-                                            style="font-size: 0.8rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; {{ $actionColor }}">
-                                            {{ strtoupper($mvt->action) }}
-                                        </span>
-                                        @if($mvt->is_rejected)
-                                            <span
-                                                style="font-size: 0.75rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 8px; border-radius: 4px; border: 1px solid #fca5a5;">
-                                                🚩 REJECTED / CONCERNS
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <span style="font-size: 0.75rem; color: #64748b;">
-                                        {{ $mvt->created_at->format('d M Y, H:i') }} ({{ $mvt->created_at->diffForHumans() }})
-                                    </span>
-                                </div>
-                                <div style="font-size: 0.85rem; color: #1e293b; margin-bottom: 6px;">
-                                    <strong>From:</strong> {{ $mvt->fromUser?->name ?? $mvt->from }} (<code>{{ $mvt->from }}</code>)
-                                    &rarr;
-                                    <strong>To:</strong> {{ $mvt->toUser?->name ?? $mvt->to }} (<code>{{ $mvt->to }}</code>)
-                                </div>
-                                @if($mvt->remark)
-                                    <div
-                                        style="font-size: 0.825rem; color: #475569; background: white; border: 1px solid {{ $mvt->is_rejected ? '#fecaca' : '#e2e8f0' }}; padding: 8px 12px; border-radius: 6px; margin-top: 6px;">
-                                        💬 "{{ $mvt->remark }}"
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+                        <x-timeline-item :movement="$mvt" :step="$loop->iteration" />
                     @endforeach
                 </div>
             @else
@@ -833,7 +771,7 @@
                 if (actionInput) actionInput.value = 'Forward';
                 if (submitBtn) {
                     const isRej = document.getElementById('is-rejected-checkbox')?.checked;
-                    submitBtn.innerHTML = isRej ? '🚩 Forward with Rejection' : '⏩ Forward Indent';
+                    submitBtn.innerHTML = isRej ? 'Forward with Rejection' : 'Forward Indent';
                     submitBtn.className = 'btn btn-primary';
                     submitBtn.style.background = isRej ? '#dc2626' : '';
                     submitBtn.style.borderColor = isRej ? '#b91c1c' : '';
@@ -846,7 +784,7 @@
                 if (returnContainer) returnContainer.style.display = 'block';
                 if (actionInput) actionInput.value = 'Return';
                 if (submitBtn) {
-                    submitBtn.innerHTML = '↩️ Return Indent';
+                    submitBtn.innerHTML = 'Return Indent';
                     submitBtn.className = 'btn btn-primary';
                     submitBtn.style.background = '#d97706';
                     submitBtn.style.borderColor = '#b45309';
@@ -882,7 +820,7 @@
                     textarea.placeholder = 'Provide required reason for rejecting or noting concerns with this indent...';
                 }
                 if (submitBtn && currentTab === 'Forward') {
-                    submitBtn.innerHTML = '🚩 Forward with Rejection';
+                    submitBtn.innerHTML = 'Forward with Rejection';
                     submitBtn.style.background = '#dc2626';
                     submitBtn.style.borderColor = '#b91c1c';
                 }
@@ -893,7 +831,7 @@
                     textarea.placeholder = 'Enter transfer instructions, observations, or review comments...';
                 }
                 if (submitBtn && currentTab === 'Forward') {
-                    submitBtn.innerHTML = '⏩ Forward Indent';
+                    submitBtn.innerHTML = 'Forward Indent';
                     submitBtn.style.background = '';
                     submitBtn.style.borderColor = '';
                 }
