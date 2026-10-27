@@ -255,10 +255,23 @@
                 🏗️ Civil Indent Portal
             </a>
             <div class="navbar-user">
+                @php
+                    $navWithMeCount = \App\Models\Indent::withMe(Auth::user()->cpf)->count();
+                @endphp
+                <a href="{{ route('indents.inbox') }}"
+                    class="btn {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? 'btn-primary' : 'btn-outline' }}"
+                    style="padding: 6px 12px; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 6px;">
+                    📥 With Me
+                    @if($navWithMeCount > 0)
+                        <span style="background: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#ffffff' : '#2563eb' }}; color: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#2563eb' : '#ffffff' }}; font-weight: 700; border-radius: 9999px; padding: 1px 7px; font-size: 0.72rem;">
+                            {{ $navWithMeCount }}
+                        </span>
+                    @endif
+                </a>
                 <a href="{{ route('indents.index') }}"
-                    class="btn {{ request()->routeIs('indents.*') ? 'btn-primary' : 'btn-outline' }}"
+                    class="btn {{ request()->routeIs('indents.index') && !in_array(request('tab'), ['with-me', 'holder']) && !request()->routeIs('indents.inbox') ? 'btn-primary' : 'btn-outline' }}"
                     style="padding: 6px 12px; font-size: 0.825rem;">
-                    📋 Indents
+                    📋 All Indents
                 </a>
                 @if(Auth::user()->isSuperAdmin())
                     <a href="{{ route('admin.areas.index') }}"

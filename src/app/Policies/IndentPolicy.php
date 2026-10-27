@@ -65,7 +65,7 @@ class IndentPolicy
      */
     public function update(User $user, Indent $indent): Response
     {
-        if (! $indent->is_draft) {
+        if (!$indent->is_draft) {
             return Response::deny('Submitted indents cannot be edited.');
         }
 
@@ -81,7 +81,7 @@ class IndentPolicy
      */
     public function delete(User $user, Indent $indent): Response
     {
-        if (! $indent->is_draft) {
+        if (!$indent->is_draft) {
             return Response::deny('Submitted indents cannot be deleted.');
         }
 
@@ -134,5 +134,69 @@ class IndentPolicy
         }
 
         return Response::deny('You are not authorized to attach files to this indent.');
+    }
+
+    /**
+     * Determine whether the user can forward or return the indent.
+     * Specification: Only the current holder can forward (Policy).
+     */
+    public function forward(User $user, Indent $indent): Response
+    {
+        if ($indent->is_draft) {
+            return Response::deny('Draft indents must be submitted before they can be forwarded.');
+        }
+
+        if ($indent->status === \App\Enums\IndentStatus::CLOSED) {
+            return Response::deny('Closed indents cannot be forwarded.');
+        }
+
+        if ($user->cpf !== $indent->current_holder_cpf) {
+            return Response::deny('Only the current holder can forward this indent.');
+        }
+
+        if ($user->hasRole('CE') && ! $user->isSuperAdmin()) {
+            return Response::deny('Civil Engineers (CE) are the terminal execution post and manage work status rather than forwarding.');
+        }
+
+        return Response::allow();
+    }
+
+    /**
+     * Determine whether the user can reject or forward with rejection.
+     * Rule: Only management roles (IM, SAM, SM) holding the indent can reject.
+     */
+    public function reject(User $user, Indent $indent): Response
+    {
+        $forwardCheck = $this->forward($user, $indent);
+        if ($forwardCheck->denied()) {
+            return $forwardCheck;
+        }
+
+        if (! $user->isSuperAdmin() && ! $user->hasRole(['IM', 'SAM', 'SM'])) {
+            return Response::deny('Only management authorities (IM, SAM, SM) have the authority to reject indents.');
+        }
+
+        return Response::allow();
+    }
+
+    /**
+     * Determine whether the user can update the execution status (Accept, In Progress, Completed).
+     * Rule: Only the Civil Engineer (CE) holding the indent can update execution status.
+     */
+    public function updateStatus(User $user, Indent $indent): Response
+    {
+        if ($indent->is_draft) {
+            return Response::deny('Draft indents cannot have their execution status updated.');
+        }
+
+        if ($user->cpf !== $indent->current_holder_cpf) {
+            return Response::deny('Only the current holder can update the indent status.');
+        }
+
+        if (! $user->isSuperAdmin() && ! $user->hasRole('CE')) {
+            return Response::deny('Only the assigned Civil Engineer (CE) can update the work execution status.');
+        }
+
+        return Response::allow();
     }
 }

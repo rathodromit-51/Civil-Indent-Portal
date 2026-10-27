@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\IndentPriority;
 use App\Enums\IndentStatus;
 use App\Enums\MovementAction;
+use App\Http\Requests\ForwardIndentRequest;
 use App\Http\Requests\StoreIndentRequest;
 use App\Http\Requests\UpdateIndentRequest;
 use App\Models\Attachment;
@@ -13,6 +14,8 @@ use App\Models\IndentParticipant;
 use App\Models\Installation;
 use App\Models\Movement;
 use App\Models\RoleAssignment;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +42,17 @@ class IndentController extends Controller
     ];
 
     /**
-     * Display a listing of indents ("Created by me" list with pagination).
+     * Display the "With me" inbox page for currently held indents.
+     */
+    public function inbox(Request $request): View
+    {
+        $request->merge(['tab' => 'with-me']);
+
+        return $this->index($request);
+    }
+
+    /**
+     * Display a listing of indents ("With me", "Created by me", drafts, or all).
      */
     public function index(Request $request): View
     {
@@ -56,15 +69,21 @@ class IndentController extends Controller
             ->latest('id');
 
         // Filter by tab
-        if ($tab === 'my') {
+        if ($tab === 'with-me' || $tab === 'holder') {
+            // "With me" Inbox (active workflow indents assigned to logged-in user)
+            $query->withMe($user->cpf);
+        } elseif ($tab === 'my') {
             // "Created by me" (all indents created by logged-in user, both draft and submitted)
             $query->where('creator_cpf', $user->cpf);
         } elseif ($tab === 'drafts') {
             // "My Drafts"
-            $query->where('creator_cpf', $user->cpf)->where('is_draft', true);
-        } elseif ($tab === 'holder') {
-            // "Held by me" (active workflow indents assigned to logged-in user)
-            $query->where('current_holder_cpf', $user->cpf)->where('is_draft', false);
+            $query->where('creator_cpf', $user->cpf)->drafts();
+        } elseif ($tab === 'flagged') {
+            // Flagged with rejection
+            $query->where(function ($q) use ($user) {
+                $q->where('creator_cpf', $user->cpf)
+                  ->orWhere('current_holder_cpf', $user->cpf);
+            })->flagged();
         } elseif ($tab === 'all') {
             // Published indents or user's own drafts
             $query->where(function ($q) use ($user) {
@@ -97,9 +116,13 @@ class IndentController extends Controller
 
         // Counts for tab badges
         $myCount = Indent::where('creator_cpf', $user->cpf)->count();
-        $myDraftsCount = Indent::where('creator_cpf', $user->cpf)->where('is_draft', true)->count();
-        $mySubmittedCount = Indent::where('creator_cpf', $user->cpf)->where('is_draft', false)->count();
-        $holderCount = Indent::where('current_holder_cpf', $user->cpf)->where('is_draft', false)->count();
+        $myDraftsCount = Indent::where('creator_cpf', $user->cpf)->drafts()->count();
+        $mySubmittedCount = Indent::where('creator_cpf', $user->cpf)->published()->count();
+        $withMeCount = Indent::withMe($user->cpf)->count();
+        $flaggedCount = Indent::where(function ($q) use ($user) {
+            $q->where('creator_cpf', $user->cpf)
+              ->orWhere('current_holder_cpf', $user->cpf);
+        })->flagged()->count();
 
         return view('indents.index', [
             'indents' => $indents,
@@ -110,7 +133,9 @@ class IndentController extends Controller
             'myCount' => $myCount,
             'myDraftsCount' => $myDraftsCount,
             'mySubmittedCount' => $mySubmittedCount,
-            'holderCount' => $holderCount,
+            'withMeCount' => $withMeCount,
+            'holderCount' => $withMeCount,
+            'flaggedCount' => $flaggedCount,
             'statuses' => IndentStatus::cases(),
             'priorities' => IndentPriority::cases(),
         ]);
@@ -246,8 +271,14 @@ class IndentController extends Controller
             'attachments.uploaderUser',
         ]);
 
+        $earlierParticipants = $indent->participants()
+            ->where('cpf', '!=', auth()->user()?->cpf)
+            ->with(['user.roleAssignment.role', 'user.roleAssignment.area', 'user.roleAssignment.installation'])
+            ->get();
+
         return view('indents.show', [
             'indent' => $indent,
+            'earlierParticipants' => $earlierParticipants,
         ]);
     }
 
@@ -406,4 +437,192 @@ class IndentController extends Controller
             ]);
         }
     }
+
+    /**
+     * Search active users by CPF, Name, Designation or Role for the recipient picker (AJAX / Fetch).
+     * Supports filtering by expected workflow role.
+     */
+    public function searchUsers(Request $request): JsonResponse
+    {
+        $term = trim((string) $request->input('q', ''));
+        $excludeCpf = $request->input('exclude_cpf', $request->user()?->cpf);
+        $indentId = $request->input('indent_id');
+        $roleFilter = $request->input('role');
+
+        if (! $roleFilter && $indentId) {
+            $indent = Indent::with('currentHolder.roleAssignment.role')->find($indentId);
+            $roleFilter = $indent?->getNextExpectedRole();
+        }
+
+        $query = User::active();
+
+        if ($roleFilter && $roleFilter !== 'all') {
+            $roles = (array) $roleFilter;
+            if (in_array('LMW', $roles, true) && ! in_array('LM Works', $roles, true)) {
+                $roles[] = 'LM Works';
+            }
+            if (in_array('LM Works', $roles, true) && ! in_array('LMW', $roles, true)) {
+                $roles[] = 'LMW';
+            }
+            $query->whereHas('roleAssignment.role', fn ($rq) => $rq->whereIn('name', $roles));
+        }
+
+        if ($term !== '') {
+            $query->search($term);
+        }
+
+        if ($excludeCpf) {
+            $query->where('cpf', '!=', $excludeCpf);
+        }
+
+        $users = $query->with(['roleAssignment.role', 'roleAssignment.area', 'roleAssignment.installation'])
+            ->orderBy('name')
+            ->limit(15)
+            ->get()
+            ->map(function (User $u) {
+                $roleName = $u->roleAssignment?->role?->name ?? 'User';
+                $roleScope = $u->roleAssignment?->installation?->name
+                    ?? $u->roleAssignment?->area?->name
+                    ?? $u->location;
+
+                return [
+                    'cpf' => $u->cpf,
+                    'name' => $u->name,
+                    'designation' => $u->designation,
+                    'location' => $u->location,
+                    'role' => $roleName,
+                    'scope' => $roleScope,
+                ];
+            });
+
+        return response()->json($users);
+    }
+
+    /**
+     * Forward, forward with rejection, or return an indent.
+     * Specification:
+     * - Strict sequence: USER -> IM -> SAM -> SM -> HES -> LMW -> ICO -> CE
+     * - Only current holder can forward (Policy).
+     * - Only IM, SAM, SM can reject (with mandatory reason).
+     * - Return to any earlier participant.
+     */
+    public function forward(ForwardIndentRequest $request, Indent $indent): RedirectResponse
+    {
+        Gate::authorize('forward', $indent);
+
+        $validated = $request->validated();
+        $user = $request->user();
+        $recipientCpf = $validated['recipient_cpf'];
+        $action = $validated['action'];
+        $isRejected = (bool) ($validated['is_rejected'] ?? false);
+        $remark = $validated['remark'] ?? null;
+
+        if ($action === MovementAction::REJECT->value) {
+            $isRejected = true;
+        }
+
+        DB::transaction(function () use ($indent, $user, $recipientCpf, $action, $isRejected, $remark) {
+            // 1. Add a movement
+            Movement::create([
+                'indent_id' => $indent->id,
+                'from' => $user->cpf,
+                'to' => $recipientCpf,
+                'action' => $action,
+                'is_rejected' => $isRejected,
+                'remark' => $remark,
+            ]);
+
+            // 2. Set current_holder_cpf and flag file if rejected
+            $indent->update([
+                'current_holder_cpf' => $recipientCpf,
+                'is_rejected' => $indent->is_rejected || $isRejected,
+            ]);
+
+            // 3. Add recipient to indent_participants
+            IndentParticipant::firstOrCreate([
+                'indent_id' => $indent->id,
+                'cpf' => $recipientCpf,
+            ]);
+        });
+
+        $recipient = User::where('cpf', $recipientCpf)->first();
+        $recipientName = $recipient ? "{$recipient->name} ({$recipient->cpf})" : $recipientCpf;
+
+        $flashMessage = match (true) {
+            $isRejected => "Indent #{$indent->number} has been forwarded with rejection flag to {$recipientName}.",
+            $action === MovementAction::RETURN->value => "Indent #{$indent->number} returned to {$recipientName}.",
+            default => "Indent #{$indent->number} successfully forwarded to {$recipientName}.",
+        };
+
+        return redirect()
+            ->route('indents.show', $indent)
+            ->with('status', $flashMessage);
+    }
+
+    /**
+     * Update work execution status (Accept, In Progress, Completed).
+     * Exclusively accessible by the assigned Civil Engineer (CE) holding the indent.
+     */
+    public function updateStatus(Request $request, Indent $indent): RedirectResponse
+    {
+        Gate::authorize('updateStatus', $indent);
+
+        $validated = $request->validate([
+            'status' => ['required', 'string', \Illuminate\Validation\Rule::in([
+                IndentStatus::ASSIGNED->value,
+                IndentStatus::IN_PROGRESS->value,
+                IndentStatus::CLOSED->value,
+            ])],
+            'remark' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $user = $request->user();
+        $newStatus = IndentStatus::from($validated['status']);
+        $remark = trim((string) ($validated['remark'] ?? ''));
+
+        $action = match ($newStatus) {
+            IndentStatus::ASSIGNED => MovementAction::ACCEPT->value,
+            IndentStatus::IN_PROGRESS => MovementAction::START_WORK->value,
+            IndentStatus::CLOSED => MovementAction::CLOSE->value,
+            default => MovementAction::COMMENT->value,
+        };
+
+        if ($remark === '') {
+            $remark = match ($newStatus) {
+                IndentStatus::ASSIGNED => 'Indent work accepted by Civil Engineer.',
+                IndentStatus::IN_PROGRESS => 'Civil execution and physical work started on site.',
+                IndentStatus::CLOSED => 'Civil work successfully completed and handed over.',
+                default => 'Status updated.',
+            };
+        }
+
+        DB::transaction(function () use ($indent, $user, $newStatus, $action, $remark, $request) {
+            $indent->update([
+                'status' => $newStatus,
+            ]);
+
+            $movement = Movement::create([
+                'indent_id' => $indent->id,
+                'from' => $user->cpf,
+                'to' => $user->cpf,
+                'action' => $action,
+                'is_rejected' => false,
+                'remark' => $remark,
+            ]);
+
+            $this->handleAttachments($request, $indent, $movement);
+        });
+
+        $statusLabel = match ($newStatus) {
+            IndentStatus::ASSIGNED => 'Accepted',
+            IndentStatus::IN_PROGRESS => 'In Progress',
+            IndentStatus::CLOSED => 'Completed & Closed',
+            default => $newStatus->value,
+        };
+
+        return redirect()
+            ->route('indents.show', $indent)
+            ->with('status', "Indent #{$indent->number} status updated to '{$statusLabel}'.");
+    }
 }
+

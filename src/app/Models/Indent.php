@@ -27,6 +27,7 @@ class Indent extends Model
         'justification',
         'status',
         'is_draft',
+        'is_rejected',
         'creator_cpf',
         'creator',
         'current_holder_cpf',
@@ -40,6 +41,7 @@ class Indent extends Model
             'priority' => IndentPriority::class,
             'required_by' => 'date',
             'is_draft' => 'boolean',
+            'is_rejected' => 'boolean',
         ];
     }
 
@@ -207,5 +209,77 @@ class Indent extends Model
     public function scopeForHolder($query, string $cpf)
     {
         return $query->where('current_holder_cpf', $cpf);
+    }
+
+    /**
+     * Scope for indents held by user (Inbox "With me" page).
+     */
+    public function scopeWithMe($query, User|string $user)
+    {
+        $cpf = $user instanceof User ? $user->cpf : $user;
+
+        return $query->where('current_holder_cpf', $cpf)->where('is_draft', false);
+    }
+
+    /**
+     * Scope for indents flagged with rejection.
+     */
+    public function scopeFlagged($query)
+    {
+        return $query->where('is_rejected', true);
+    }
+
+    /**
+     * Determine if this indent is flagged with rejection.
+     */
+    public function isRejected(): bool
+    {
+        return (bool) ($this->is_rejected || $this->movements()->where('is_rejected', true)->exists());
+    }
+
+    /**
+     * Get the next expected role in the strict sequence:
+     * USER -> IM -> SAM -> SM -> HES -> LMW -> ICO -> CE
+     */
+    public function getNextExpectedRole(): ?string
+    {
+        $currentHolder = $this->currentHolder;
+        if (! $currentHolder) {
+            return 'IM';
+        }
+
+        $currentRole = $currentHolder->roleAssignment?->role?->name ?? 'User';
+
+        return match ($currentRole) {
+            'User' => 'IM',
+            'IM' => 'SAM',
+            'SAM' => 'SM',
+            'SM' => 'HES',
+            'HES' => 'LMW',
+            'LMW', 'LM Works' => 'ICO',
+            'ICO' => 'CE',
+            default => null,
+        };
+    }
+
+    /**
+     * Determine if this indent is currently held by a Civil Engineer (CE).
+     */
+    public function isHeldByCe(): bool
+    {
+        return (bool) $this->currentHolder?->hasRole('CE');
+    }
+
+    /**
+     * Get the latest rejection movement record if any.
+     */
+    public function latestRejectionMovement(): ?Movement
+    {
+        return $this->movements()
+            ->where('is_rejected', true)
+            ->with(['fromUser.roleAssignment.role'])
+            ->latest('created_at')
+            ->latest('id')
+            ->first();
     }
 }

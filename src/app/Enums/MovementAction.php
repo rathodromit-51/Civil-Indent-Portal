@@ -10,6 +10,8 @@ enum MovementAction: string
     case REJECT = 'Reject';
     case ASSIGN = 'Assign';
     case RETURN = 'Return';
+    case ACCEPT = 'Accept';
+    case START_WORK = 'StartWork';
     case CLOSE = 'Close';
     case COMMENT = 'Comment';
 

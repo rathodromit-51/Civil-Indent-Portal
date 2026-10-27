@@ -25,8 +25,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::match(['get', 'post'], '/logout', [AuthController::class, 'destroy'])->name('logout');
 
+    // Inbox page "With me"
+    Route::get('/inbox', [IndentController::class, 'inbox'])->name('indents.inbox');
+
+    // Recipient search (AJAX / fetch for recipient picker)
+    Route::get('/users/search', [IndentController::class, 'searchUsers'])->name('users.search');
+
     // Indents (Civil Work Requisitions) - Draft, Submit, Forwarding
     Route::resource('indents', IndentController::class);
+
+    // Forward, Forward with Rejection, Return (Only current holder can forward)
+    Route::post('indents/{indent}/forward', [IndentController::class, 'forward'])->name('indents.forward');
+
+    // CE Work Execution Status Updates (Accept, In Progress, Completed)
+    Route::post('indents/{indent}/status', [IndentController::class, 'updateStatus'])->name('indents.status.update');
 
     // Attachments on Indent route (Authorized person can attach file with indent)
     Route::post('indents/{indent}/attachments', [AttachmentController::class, 'store'])->name('indents.attachments.store');

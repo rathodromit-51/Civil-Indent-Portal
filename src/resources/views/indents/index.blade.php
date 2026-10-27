@@ -176,10 +176,18 @@
 <div class="page-header">
     <div>
         <h1 class="page-title">
-            📋 Civil Work Indents
+            @if(in_array($tab, ['with-me', 'holder']))
+                📥 Inbox — With Me
+            @else
+                📋 Civil Work Indents
+            @endif
         </h1>
         <p style="color: var(--text-muted); font-size: 0.875rem;">
-            Manage and track civil requisition lifecycles, draft submissions, approvals, and on-site execution.
+            @if(in_array($tab, ['with-me', 'holder']))
+                Indents currently assigned to you awaiting your review, forward action, or execution.
+            @else
+                Manage and track civil requisition lifecycles, draft submissions, approvals, and on-site execution.
+            @endif
         </p>
     </div>
     <a href="{{ route('indents.create') }}" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600;">
@@ -221,6 +229,11 @@
 
 {{-- View Filter Tabs --}}
 <div class="tab-bar">
+    <a href="{{ route('indents.index', ['tab' => 'with-me']) }}"
+       class="tab-link {{ in_array($tab, ['with-me', 'holder']) ? 'active' : '' }}">
+        📥 With Me
+        <span class="tab-badge" style="{{ $withMeCount > 0 ? 'background: #eff6ff; color: #2563eb; font-weight: 700;' : '' }}">{{ $withMeCount }}</span>
+    </a>
     <a href="{{ route('indents.index', ['tab' => 'my']) }}"
        class="tab-link {{ $tab === 'my' ? 'active' : '' }}">
         ✍️ Created by Me
@@ -231,11 +244,12 @@
         📝 My Drafts
         <span class="tab-badge">{{ $myDraftsCount }}</span>
     </a>
-    <a href="{{ route('indents.index', ['tab' => 'holder']) }}"
-       class="tab-link {{ $tab === 'holder' ? 'active' : '' }}">
-        📬 Held by Me
-        <span class="tab-badge">{{ $holderCount }}</span>
-    </a>
+    @if($flaggedCount > 0)
+        <a href="{{ route('indents.index', ['tab' => 'flagged']) }}"
+           class="tab-link {{ $tab === 'flagged' ? 'active' : '' }}" style="color: #dc2626;">
+            🚩 Flagged ({{ $flaggedCount }})
+        </a>
+    @endif
     <a href="{{ route('indents.index', ['tab' => 'all']) }}"
        class="tab-link {{ $tab === 'all' ? 'active' : '' }}">
         🌐 All Visible Indents
@@ -382,6 +396,13 @@
                                 <span class="badge {{ $statusClass }}">
                                     🚀 {{ $indent->status->value ?? 'Open' }}
                                 </span>
+                                @if($indent->is_rejected)
+                                    <div style="margin-top: 4px;">
+                                        <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-size: 0.7rem;">
+                                            🚩 Flagged (Rejected)
+                                        </span>
+                                    </div>
+                                @endif
                             @endif
                         </td>
 
@@ -406,12 +427,25 @@
                                 <span style="font-family: monospace; font-size: 0.725rem; background: #e2e8f0; color: #1e293b; padding: 1px 6px; border-radius: 4px;">
                                     {{ $indent->current_holder_cpf }}
                                 </span>
+                                @if(Auth::user()->cpf === $indent->current_holder_cpf)
+                                    <span style="font-size: 0.7rem; background: #dcfce7; color: #15803d; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-left: 4px;">
+                                        With you
+                                    </span>
+                                @endif
                             @endif
                         </td>
 
                         {{-- Actions --}}
                         <td style="padding: 14px 18px; text-align: right; white-space: nowrap;">
                             <div style="display: inline-flex; align-items: center; gap: 6px;">
+                                @if(!$indent->is_draft && Auth::user()->cpf === $indent->current_holder_cpf && $indent->status !== \App\Enums\IndentStatus::CLOSED)
+                                    <a href="{{ route('indents.show', $indent) }}#forward-form-section"
+                                       class="btn btn-primary"
+                                       style="padding: 5px 12px; font-size: 0.775rem; font-weight: 600;">
+                                        ⏩ Forward
+                                    </a>
+                                @endif
+
                                 @if($indent->is_draft && Auth::user()->cpf === $indent->creator_cpf)
                                     <a href="{{ route('indents.edit', $indent) }}"
                                        class="btn btn-outline"

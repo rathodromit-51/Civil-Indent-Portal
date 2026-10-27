@@ -61,7 +61,15 @@ class User extends Authenticatable
             return false;
         }
 
-        return is_array($roles) ? in_array($roleName, $roles, true) : $roleName === $roles;
+        $rolesArray = (array) $roles;
+        if (in_array('LMW', $rolesArray, true) && ! in_array('LM Works', $rolesArray, true)) {
+            $rolesArray[] = 'LM Works';
+        }
+        if (in_array('LM Works', $rolesArray, true) && ! in_array('LMW', $rolesArray, true)) {
+            $rolesArray[] = 'LMW';
+        }
+
+        return in_array($roleName, $rolesArray, true);
     }
 
     /**
@@ -141,5 +149,34 @@ class User extends Authenticatable
     public function uploadedAttachments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Attachment::class, 'uploader', 'cpf');
+    }
+
+    /**
+     * Scope to search users by CPF, Name, Designation, Email, or Role.
+     */
+    public function scopeSearch($query, ?string $term)
+    {
+        $term = trim((string) $term);
+        if ($term === '') {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($term) {
+            $q->where('cpf', 'like', "%{$term}%")
+              ->orWhere('name', 'like', "%{$term}%")
+              ->orWhere('designation', 'like', "%{$term}%")
+              ->orWhere('email', 'like', "%{$term}%")
+              ->orWhereHas('roleAssignment.role', function ($rq) use ($term) {
+                  $rq->where('name', 'like', "%{$term}%");
+              });
+        });
+    }
+
+    /**
+     * Scope to only active users.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
     }
 }
