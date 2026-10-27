@@ -7,6 +7,7 @@ use App\Enums\IndentStatus;
 use App\Enums\MovementAction;
 use App\Http\Requests\StoreIndentRequest;
 use App\Http\Requests\UpdateIndentRequest;
+use App\Models\Attachment;
 use App\Models\Indent;
 use App\Models\IndentParticipant;
 use App\Models\Installation;
@@ -165,6 +166,9 @@ class IndentController extends Controller
                 'cpf' => $user->cpf,
             ]);
 
+            // Save uploaded attachments to private disk
+            $this->handleAttachments($request, $indent);
+
             return redirect()
                 ->route('indents.index', ['tab' => 'drafts'])
                 ->with('status', "Draft indent #{$indent->number} has been saved successfully.");
@@ -194,7 +198,7 @@ class IndentController extends Controller
             ]);
 
             // Create initial movement (First forward)
-            Movement::create([
+            $movement = Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
                 'to' => $nextHolderCpf,
@@ -215,6 +219,9 @@ class IndentController extends Controller
                 ]);
             }
 
+            // Save uploaded attachments to private disk
+            $this->handleAttachments($request, $indent, $movement);
+
             return $indent;
         });
 
@@ -234,8 +241,9 @@ class IndentController extends Controller
             'installation.area',
             'creator',
             'currentHolder',
-            'movements' => fn ($q) => $q->with(['fromUser', 'toUser'])->latest('created_at')->latest('id'),
+            'movements' => fn ($q) => $q->with(['fromUser', 'toUser', 'attachments'])->latest('created_at')->latest('id'),
             'participants.user',
+            'attachments.uploaderUser',
         ]);
 
         return view('indents.show', [
@@ -253,6 +261,7 @@ class IndentController extends Controller
     {
         Gate::authorize('update', $indent);
 
+        $indent->load(['attachments.uploaderUser']);
         $installations = Installation::with('area')->orderBy('name')->get();
         $priorities = IndentPriority::cases();
         $workTypes = $this->workTypes;
@@ -289,6 +298,9 @@ class IndentController extends Controller
                 'justification' => $validated['justification'] ?? null,
             ]);
 
+            // Save any newly added attachments
+            $this->handleAttachments($request, $indent);
+
             return redirect()
                 ->route('indents.index', ['tab' => 'drafts'])
                 ->with('status', "Draft indent #{$indent->number} has been updated successfully.");
@@ -315,7 +327,7 @@ class IndentController extends Controller
             ]);
 
             // Create first forward movement
-            Movement::create([
+            $movement = Movement::create([
                 'indent_id' => $indent->id,
                 'from' => $user->cpf,
                 'to' => $nextHolderCpf,
@@ -335,6 +347,9 @@ class IndentController extends Controller
                     'cpf' => $nextHolderCpf,
                 ]);
             }
+
+            // Save any newly added attachments linked to the submit movement
+            $this->handleAttachments($request, $indent, $movement);
         });
 
         return redirect()
@@ -355,5 +370,40 @@ class IndentController extends Controller
         return redirect()
             ->route('indents.index')
             ->with('status', "Draft indent #{$number} has been deleted.");
+    }
+
+    /**
+     * Store uploaded attachments to private disk and record Attachment models.
+     */
+    protected function handleAttachments(Request $request, Indent $indent, ?Movement $movement = null): void
+    {
+        if (! $request->hasFile('attachments')) {
+            return;
+        }
+
+        $user = $request->user();
+
+        foreach ($request->file('attachments') as $file) {
+            if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $originalName = $file->getClientOriginalName();
+            $size = $file->getSize();
+            $mime = $file->getMimeType() ?: $file->getClientMimeType() ?: 'application/octet-stream';
+
+            // Store strictly on private filesystem disk under indents/{indent_id}/
+            $storedPath = $file->store("indents/{$indent->id}", 'private');
+
+            Attachment::create([
+                'indent_id' => $indent->id,
+                'movement_id' => $movement?->id,
+                'uploader' => $user->cpf,
+                'original_name' => $originalName,
+                'stored_path' => $storedPath,
+                'size' => $size,
+                'mime_type' => $mime,
+            ]);
+        }
     }
 }

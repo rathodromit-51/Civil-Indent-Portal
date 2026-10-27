@@ -91,4 +91,48 @@ class IndentPolicy
 
         return Response::allow();
     }
+
+    /**
+     * Determine whether the user can attach files to the indent.
+     * Authorized users include:
+     * - Super Administrators.
+     * - Creator of the indent.
+     * - Current workflow holder (e.g. IM, AE, EE reviewing/acting on the indent).
+     * - Recorded workflow participants in the indent chain.
+     * - Role holders belonging to this indent's installation or organization.
+     */
+    public function addAttachment(User $user, Indent $indent): Response
+    {
+        // 1. Super Admin can always attach
+        if ($user->isSuperAdmin()) {
+            return Response::allow();
+        }
+
+        // 2. If indent is draft, only creator can attach
+        if ($indent->is_draft) {
+            return $user->cpf === $indent->creator_cpf
+                ? Response::allow()
+                : Response::deny('Only the creator can add attachments to a draft indent.');
+        }
+
+        // 3. Current holder or creator can attach files to active indents
+        if ($user->cpf === $indent->current_holder_cpf || $user->cpf === $indent->creator_cpf) {
+            return Response::allow();
+        }
+
+        // 4. Any participant in this indent's workflow
+        if ($indent->participants()->where('cpf', $user->cpf)->exists()) {
+            return Response::allow();
+        }
+
+        // 5. Assigned role holders for this indent's installation or global
+        if ($user->roleAssignment()->exists()) {
+            $assignment = $user->roleAssignment;
+            if ($assignment && ($assignment->installation_id === null || $assignment->installation_id === $indent->installation_id)) {
+                return Response::allow();
+            }
+        }
+
+        return Response::deny('You are not authorized to attach files to this indent.');
+    }
 }

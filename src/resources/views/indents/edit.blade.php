@@ -117,7 +117,7 @@
     </div>
 
     <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 32px; border-radius: 10px;">
-        <form action="{{ route('indents.update', $indent) }}" method="POST" id="edit-indent-form">
+        <form action="{{ route('indents.update', $indent) }}" method="POST" id="edit-indent-form" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -247,6 +247,69 @@
                 @error('justification')
                     <div class="invalid-feedback">⚠️ {{ $message }}</div>
                 @enderror
+            </div>
+
+            {{-- Attachments Section --}}
+            <div class="form-group" style="background: #ffffff; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
+                <label for="attachments" class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                        📎 Attachments (Max 100 MB per file)
+                    </span>
+                    <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">
+                        Multiple allowed
+                    </span>
+                </label>
+
+                {{-- Existing Attachments --}}
+                @if($indent->attachments->isNotEmpty())
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 8px;">
+                            Attached Files ({{ $indent->attachments->count() }})
+                        </div>
+                        <div style="display: grid; gap: 8px;">
+                            @foreach($indent->attachments as $att)
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 6px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                                        <span style="font-size: 1.2rem;">📄</span>
+                                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                            <a href="{{ route('attachments.download', $att) }}" style="font-weight: 600; color: var(--primary); text-decoration: none; font-size: 0.85rem;">
+                                                {{ $att->original_name }}
+                                            </a>
+                                            <span style="font-size: 0.75rem; color: #94a3b8; margin-left: 6px;">
+                                                ({{ $att->formatted_size }})
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <a href="{{ route('attachments.download', $att) }}" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem; background: white;">
+                                        📥 Download
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Upload More Attachments --}}
+                <div style="margin-top: 8px;">
+                    <label for="attachments" style="font-size: 0.8rem; font-weight: 600; color: #334155; display: block; margin-bottom: 4px;">
+                        Upload Additional Files:
+                    </label>
+                    <input type="file"
+                           id="attachments"
+                           name="attachments[]"
+                           multiple
+                           class="form-control @error('attachments') is-invalid @enderror @error('attachments.*') is-invalid @enderror"
+                           accept=".jpg,.jpeg,.png,.gif,.svg,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.dwg,.dxf,.kml">
+                    <div class="form-hint" style="margin-top: 6px;">
+                        Supported formats: Images, PDF, Word, Excel, PowerPoint, ZIP, CAD (DWG, DXF), GIS (KML). Max 100 MB per file.
+                    </div>
+                    @error('attachments')
+                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    @enderror
+                    @error('attachments.*')
+                        <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                    @enderror
+                </div>
             </div>
 
             {{-- Submission Remarks --}}

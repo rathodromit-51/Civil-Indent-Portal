@@ -86,7 +86,7 @@ class UserSeeder extends Seeder
                 'location' => 'Vadodara',
                 'email' => 'im1@civilportal.local',
                 'password' => $defaultHashedPassword,
-                'active' => false,
+                'active' => true,
             ],
             [
                 'cpf' => 'IM002',
@@ -166,7 +166,7 @@ class UserSeeder extends Seeder
                 'location' => 'Surat',
                 'email' => 'ce2@civilportal.local',
                 'password' => $defaultHashedPassword,
-                'active' => false,
+                'active' => true,
             ],
             [
                 'cpf' => 'CE003',

@@ -117,7 +117,7 @@
     </div>
 
     <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 32px; border-radius: 10px;">
-        <form action="{{ route('indents.store') }}" method="POST" id="indent-form">
+        <form action="{{ route('indents.store') }}" method="POST" id="indent-form" enctype="multipart/form-data">
             @csrf
 
             {{-- Title --}}
@@ -255,6 +255,33 @@
                           placeholder="Explain why this work is critical, potential safety hazards, impact on plant operations, or regulatory compliance needs...">{{ old('justification') }}</textarea>
                 <div class="form-hint">Why is this work required at this time?</div>
                 @error('justification')
+                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                @enderror
+            </div>
+
+            {{-- Multiple Attachments --}}
+            <div class="form-group" style="background: #ffffff; border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;">
+                <label for="attachments" class="form-label" style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                        📎 Attachments (Optional, Multiple)
+                    </span>
+                    <span style="font-size: 0.75rem; color: #64748b; font-weight: normal;">
+                        Max 100 MB per file
+                    </span>
+                </label>
+                <input type="file"
+                       id="attachments"
+                       name="attachments[]"
+                       multiple
+                       class="form-control @error('attachments') is-invalid @enderror @error('attachments.*') is-invalid @enderror"
+                       accept=".jpg,.jpeg,.png,.gif,.svg,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.dwg,.dxf,.kml">
+                <div class="form-hint" style="margin-top: 6px; line-height: 1.5;">
+                    Supported formats: <strong>Images</strong> (JPG, PNG, GIF, SVG, WEBP), <strong>Documents</strong> (PDF, DOC, DOCX), <strong>Spreadsheets</strong> (XLS, XLSX, CSV), <strong>Presentations</strong> (PPT, PPTX), <strong>Archives</strong> (ZIP), <strong>CAD & GIS</strong> (DWG, DXF, KML). Stored on a secure private disk.
+                </div>
+                @error('attachments')
+                    <div class="invalid-feedback">⚠️ {{ $message }}</div>
+                @enderror
+                @error('attachments.*')
                     <div class="invalid-feedback">⚠️ {{ $message }}</div>
                 @enderror
             </div>

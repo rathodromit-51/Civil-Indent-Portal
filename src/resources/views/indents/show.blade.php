@@ -273,6 +273,128 @@
         @endif
     </div>
 
+    {{-- Attachments Card --}}
+    <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 8px; margin: 0;">
+                📎 Attached Documents & Drawings
+            </h2>
+            <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 10px; border-radius: 9999px; font-weight: 700;">
+                {{ $indent->attachments->count() }} Files
+            </span>
+        </div>
+
+        @if($indent->attachments->isNotEmpty())
+            <div style="display: grid; gap: 10px;">
+                @foreach($indent->attachments as $att)
+                    @php
+                        $ext = strtolower(pathinfo($att->original_name, PATHINFO_EXTENSION));
+                        $icon = match($ext) {
+                            'pdf' => '📕',
+                            'dwg', 'dxf', 'kml' => '📐',
+                            'xls', 'xlsx', 'csv' => '📊',
+                            'doc', 'docx' => '📝',
+                            'ppt', 'pptx' => '📽️',
+                            'zip' => '📦',
+                            'jpg', 'jpeg', 'png', 'gif', 'svg', 'webp' => '🖼️',
+                            default => '📄',
+                        };
+                    @endphp
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                            <span style="font-size: 1.5rem;">{{ $icon }}</span>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 600; color: #0f172a; font-size: 0.9rem; word-break: break-all;">
+                                    {{ $att->original_name }}
+                                </div>
+                                <div style="font-size: 0.775rem; color: #64748b; display: flex; gap: 12px; margin-top: 2px; flex-wrap: wrap;">
+                                    <span><strong>Size:</strong> {{ $att->formatted_size }}</span>
+                                    <span>&bull;</span>
+                                    <span><strong>Uploaded by:</strong> {{ $att->uploaderUser?->name ?? $att->uploader }}</span>
+                                    <span>&bull;</span>
+                                    <span>{{ $att->created_at->format('d M Y, H:i') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="{{ route('attachments.download', $att) }}"
+                               class="btn btn-outline"
+                               style="background: #ffffff; color: var(--primary); border-color: #93c5fd; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                📥 Download
+                            </a>
+
+                            @can('delete', $att)
+                                <form action="{{ route('attachments.destroy', $att) }}"
+                                      method="POST"
+                                      style="display: inline; margin: 0;"
+                                      onsubmit="return confirm('Delete attachment \'{{ $att->original_name }}\'?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline" style="color: #dc2626; border-color: #fecaca; background: #ffffff; font-size: 0.8rem; padding: 6px 10px;">
+                                        🗑️
+                                    </button>
+                                </form>
+                            @endcan
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div style="color: #64748b; font-size: 0.85rem; font-style: italic; padding: 12px 0;">
+                No attachments uploaded for this indent.
+            </div>
+        @endif
+
+        @can('addAttachment', $indent)
+            <div style="margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--border-color);">
+                <form action="{{ route('indents.attachments.store', $indent) }}"
+                      method="POST"
+                      enctype="multipart/form-data"
+                      style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px 20px; border-radius: 8px;">
+                    @csrf
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+                        <span style="font-size: 0.875rem; font-weight: 700; color: #1e293b; display: inline-flex; align-items: center; gap: 6px;">
+                            ➕ Attach Files to this Indent
+                        </span>
+                        <span style="font-size: 0.75rem; color: #64748b;">
+                            Max 100 MB per file &bull; Allowed: Images, PDF, CAD (DWG/DXF), Office, ZIP, KML
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <input type="file"
+                               name="attachments[]"
+                               id="show-attachments-input"
+                               multiple
+                               required
+                               class="form-control"
+                               style="max-width: 420px; background: white; padding: 8px 12px; font-size: 0.85rem;"
+                               accept=".jpg,.jpeg,.png,.gif,.svg,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.dwg,.dxf,.kml">
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                style="padding: 9px 18px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                            📎 Upload & Attach
+                        </button>
+                    </div>
+
+                    @error('attachments')
+                        <div style="color: #dc2626; font-size: 0.775rem; margin-top: 6px; font-weight: 600;">
+                            ⚠️ {{ $message }}
+                        </div>
+                    @enderror
+
+                    @error('attachments.*')
+                        <div style="color: #dc2626; font-size: 0.775rem; margin-top: 6px; font-weight: 600;">
+                            ⚠️ {{ $message }}
+                        </div>
+                    @enderror
+                </form>
+            </div>
+        @endcan
+    </div>
+
     {{-- Workflow Movements History Card --}}
     <div class="card" style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">

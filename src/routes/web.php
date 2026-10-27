@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\IndentController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,13 @@ Route::middleware('auth')->group(function () {
 
     // Indents (Civil Work Requisitions) - Draft, Submit, Forwarding
     Route::resource('indents', IndentController::class);
+
+    // Attachments on Indent route (Authorized person can attach file with indent)
+    Route::post('indents/{indent}/attachments', [AttachmentController::class, 'store'])->name('indents.attachments.store');
+
+    // Secure Private Attachments (Streamed download, Permission enforced, Draft deletion)
+    Route::get('attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
+    Route::delete('attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
 
 
     // Role Assignments & User Roles Screen (Super Admin, SM, SAM)

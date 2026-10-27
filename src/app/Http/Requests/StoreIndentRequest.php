@@ -34,6 +34,8 @@ class StoreIndentRequest extends FormRequest
             'justification' => ['nullable', 'string', 'max:5000'],
             'action' => ['required', 'string', Rule::in(['draft', 'submit'])],
             'remark' => ['nullable', 'string', 'max:1000'],
+            'attachments' => ['nullable', 'array', 'max:20'],
+            'attachments.*' => ['file', new \App\Rules\ValidAttachmentRule()],
         ];
     }
 
@@ -52,6 +54,8 @@ class StoreIndentRequest extends FormRequest
             'justification' => 'justification',
             'action' => 'submission action',
             'remark' => 'submission remarks',
+            'attachments' => 'attached files',
+            'attachments.*' => 'attachment file',
         ];
     }
 

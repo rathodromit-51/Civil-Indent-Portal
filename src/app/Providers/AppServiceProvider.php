@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(RoleAssignment::class, RoleAssignmentPolicy::class);
         Gate::policy(\App\Models\Indent::class, \App\Policies\IndentPolicy::class);
+        Gate::policy(\App\Models\Attachment::class, \App\Policies\AttachmentPolicy::class);
         Paginator::defaultView('vendor.pagination.default');
 
         if (config('app.env') === 'production' && config('auth.auth_mode') === 'dev') {

@@ -35,6 +35,10 @@ services:
       AUTORUN_LARAVEL_OPTIMIZE: "false"
       AUTORUN_LARAVEL_CONFIG_CACHE: "false"
       AUTORUN_LARAVEL_ROUTE_CACHE: "false"
+      PHP_POST_MAX_SIZE: "128M"
+      PHP_UPLOAD_MAX_FILE_SIZE: "100M"
+      PHP_MAX_FILE_UPLOADS: "20"
+      NGINX_CLIENT_MAX_BODY_SIZE: "128M"
     user: root
     entrypoint: [ "sh", "-c", "chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache && exec docker-php-serversideup-entrypoint /init" ]
     depends_on:
