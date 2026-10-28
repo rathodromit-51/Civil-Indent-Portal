@@ -357,7 +357,7 @@ class IndentForwardTest extends TestCase
     }
 
     /**
-     * Test 6: Inbox page "With me" shows indents currently held by logged in user.
+     * Test 6: Inbox page "Work Queue" shows indents currently held by logged in user.
      */
     public function test_inbox_with_me_page(): void
     {
@@ -367,9 +367,9 @@ class IndentForwardTest extends TestCase
         $imInbox = $this->actingAs($this->im)->get(route('indents.inbox'));
         $imInbox->assertOk();
         $imInbox->assertSee($indent->number);
-        $imInbox->assertSee('With Me');
+        $imInbox->assertSee('Work Queue');
 
-        // User does not hold it -> not in With Me tab
+        // User does not hold it -> not in Work Queue tab
         $userInbox = $this->actingAs($this->user)->get(route('indents.inbox'));
         $userInbox->assertOk();
         $userInbox->assertDontSee($indent->title);

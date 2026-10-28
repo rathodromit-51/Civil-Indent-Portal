@@ -42,7 +42,7 @@ class IndentController extends Controller
     ];
 
     /**
-     * Display the "With me" inbox page for currently held indents.
+     * Display the "Work Queue" inbox page for currently held indents.
      */
     public function inbox(Request $request): View
     {
@@ -52,7 +52,7 @@ class IndentController extends Controller
     }
 
     /**
-     * Display a listing of indents ("With me", "Created by me", drafts, or all).
+     * Display a listing of indents ("Work Queue", "Created by me", drafts, or all).
      */
     public function index(Request $request): View
     {
@@ -70,7 +70,7 @@ class IndentController extends Controller
 
         // Filter by tab
         if ($tab === 'with-me' || $tab === 'holder') {
-            // "With me" Inbox (active workflow indents assigned to logged-in user)
+            // "Work Queue" Inbox (active workflow indents assigned to logged-in user)
             $query->withMe($user->cpf);
         } elseif ($tab === 'my') {
             // "Created by me" (all indents created by logged-in user, both draft and submitted)

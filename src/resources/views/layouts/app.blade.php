@@ -263,7 +263,7 @@
                 <a href="{{ route('indents.inbox') }}"
                     class="btn {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? 'btn-primary' : 'btn-outline' }}"
                     style="padding: 6px 12px; font-size: 0.825rem; display: inline-flex; align-items: center; gap: 6px;">
-                    With Me
+                    Work Queue
                     @if($navWithMeCount > 0)
                         <span style="background: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#ffffff' : '#2563eb' }}; color: {{ request()->routeIs('indents.inbox') || (request()->routeIs('indents.index') && (request('tab') === 'with-me' || request('tab') === 'holder')) ? '#2563eb' : '#ffffff' }}; font-weight: 700; border-radius: 9999px; padding: 1px 7px; font-size: 0.72rem;">
                             {{ $navWithMeCount }}

@@ -212,7 +212,7 @@ class Indent extends Model
     }
 
     /**
-     * Scope for indents held by user (Inbox "With me" page).
+     * Scope for indents held by user (Work Queue page).
      */
     public function scopeWithMe($query, User|string $user)
     {

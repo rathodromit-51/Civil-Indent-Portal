@@ -177,7 +177,7 @@
     <div>
         <h1 class="page-title">
             @if(in_array($tab, ['with-me', 'holder']))
-                Inbox — With Me
+                Work Queue
             @else
                 Civil Work Indents
             @endif
@@ -227,7 +227,7 @@
 <div class="tab-bar">
     <a href="{{ route('indents.index', ['tab' => 'with-me']) }}"
        class="tab-link {{ in_array($tab, ['with-me', 'holder']) ? 'active' : '' }}">
-        With Me
+        Work Queue
         <span class="tab-badge" style="{{ $withMeCount > 0 ? 'background: #eff6ff; color: #2563eb; font-weight: 700;' : '' }}">{{ $withMeCount }}</span>
     </a>
     <a href="{{ route('indents.index', ['tab' => 'my']) }}"

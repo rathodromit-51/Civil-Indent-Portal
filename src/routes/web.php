@@ -25,7 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::match(['get', 'post'], '/logout', [AuthController::class, 'destroy'])->name('logout');
 
-    // Inbox page "With me"
+    // Inbox page "Work Queue"
     Route::get('/inbox', [IndentController::class, 'inbox'])->name('indents.inbox');
 
     // Recipient search (AJAX / fetch for recipient picker)

@@ -1,276 +1,390 @@
-# Civil Indent Portal
+# Civil Indent Portal — Docker Project Setup Guide
 
-An enterprise-grade requisition, workflow tracking, and lifecycle management system designed for civil engineering maintenance operations, plant installations, and administrative multi-tier approvals.
+A complete Docker-based development and production stack for a Laravel application.
 
 ---
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Workflow & Role Architecture](#workflow--role-architecture)
-- [Technology Stack](#technology-stack)
-- [Data Model & Schema](#data-model--schema)
-- [Quick Start with Docker](#quick-start-with-docker)
-- [Local Development Setup](#local-development-setup)
-- [Pre-Seeded Accounts & Role Directory](#pre-seeded-accounts--role-directory)
-- [Testing & Quality Assurance](#testing--quality-assurance)
-- [Security & Authorization Policies](#security--authorization-policies)
-- [Design System & UI](#design-system--ui)
+1. [Project Overview](#step-1-understand-the-project-structure)
+2. [Prerequisites](#step-2-install-prerequisites)
+3. [Initial Setup](#step-3-initial-setup)
+4. [Start the Development Stack](#step-4-start-the-development-stack)
+5. [Verify Everything Is Running](#step-5-verify-everything-is-running)
+6. [Common Day-to-Day Commands](#step-6-common-day-to-day-commands)
+7. [Enable Optional Services](#step-7-enable-optional-services)
+8. [Deploy to Production](#step-8-deploy-to-production)
+9. [Troubleshooting](#step-9-troubleshooting)
 
 ---
 
-## Overview
-
-The **Civil Indent Portal** streamlines the formal lifecycle of civil work requisitions across industrial assets, plant facilities, and operational areas. It enforces strict sequential approvals, audit traceability, single/multi-holder role rules, execution tracking, and access-controlled document attachments.
-
-Each indent progresses through an immutable chronological audit trail detailing **who** acted, **what** role they held at that timestamp, **why** actions were taken (mandatory rejection/return remarks), and **when** work transitions occurred.
-
----
-
-## Key Features
-
-- **Lifecycle Management**: Draft saving, review forwarding, returns, rejections, in-progress work tracking, and final completion handover.
-- **Strict Workflow Sequencing**: Enforces linear forwarding along the organizational hierarchy (`USER` &rarr; `IM` &rarr; `SAM` &rarr; `SM` &rarr; `HES` &rarr; `LMW` &rarr; `ICO` &rarr; `CE`).
-- **Dynamic Recipient Search**: Instant AJAX-powered recipient selector with smart role filtering, CPF search, and installation/area scope auto-matching.
-- **Return & Rejection Safeguards**:
-  - Rejection flag restricted exclusively to authorized operational tiers (`IM`, `SAM`, `SM`) with mandatory justification.
-  - Return capability allowing indents to be returned directly to any earlier participant in the workflow history.
-- **Civil Execution Panel**: Dedicated on-site execution controls (`Accept`, `Start Work`, `Complete & Close`) reserved for assigned Civil Engineers holding the indent.
-- **Concurrency-Safe Auto-Numbering**: Issues standardized identifiers (`CI-YYYY-XXXX`) using database row-locking (`lockForUpdate()`) to prevent race conditions.
-- **Secure File Storage**: Supports multiple file uploads (drawings, CAD files, site photos, PDFs, spreadsheets up to 100 MB per file) stored securely on private disks with authorized download streaming.
-- **Comprehensive Audit Trail**: Complete timeline showing all past movements, actor CPF, role at the time of movement, action, and decision remarks.
-- **Administrative Control Center**: User-role assignments, operational area/installation master data management, and immutable audit logging.
-
----
-
-## Workflow & Role Architecture
-
-### 1. Organizational Role Hierarchy
-
-| Role Code | Role Name | Operational Scope | Multi-Holder | Functional Description |
-| :--- | :--- | :--- | :---: | :--- |
-| **USER** | Standard User | Global | Yes | Any registered employee; can raise and draft indents. |
-| **IM** | Installation Manager | Installation | No | First reviewer at the target plant/installation site. |
-| **SAM** | Section Area Manager | Area | No | Area-level engineering manager oversight. |
-| **SM** | Surface Manager | Area | No | Senior operational clearance across the asset area. |
-| **HES** | Head Engineering Services | Global | No | Centralized engineering authority approval. |
-| **LMW** | Line Manager (Works) | Global | No | Civil works budget and administrative clearance. |
-| **ICO** | In-Charge Operations | Installation | No | Plant operations site clearance for physical work. |
-| **CE** | Civil Engineer | Installation | Yes | Assigned site engineer responsible for physical execution. |
-| **ADMIN** | System Administrator | Global | Yes | Master data, user-role governance, and audit logs. |
-
-### 2. Workflow Transition Flow
-
-```mermaid
-flowchart TD
-    A([User Drafts Indent]) -->|Submit| B[IM: Installation Manager]
-    B -->|Forward| C[SAM: Section Area Manager]
-    B -->|Reject / Return| A
-    C -->|Forward| D[SM: Surface Manager]
-    C -->|Reject / Return| B
-    D -->|Forward| E[HES: Head Engineering Services]
-    D -->|Reject / Return| C
-    E -->|Forward| F[LMW: Line Manager Works]
-    E -->|Return| D
-    F -->|Forward| G[ICO: In-Charge Operations]
-    F -->|Return| E
-    G -->|Forward / Assign| H[CE: Civil Engineer]
-    G -->|Return| F
-    H -->|Accept| I[CE: Work In Progress]
-    H -->|Return| G
-    I -->|Execute & Complete| J([Closed & Handed Over])
-```
-
----
-
-## Technology Stack
-
-- **Framework**: [Laravel 12](https://laravel.com/) (PHP 8.4)
-- **Database**: [MySQL 8.0](https://www.mysql.com/) (Production/Docker), [SQLite](https://www.sqlite.org/) (Testing)
-- **Cache & Queues**: [Redis 7.2](https://redis.io/)
-- **Web Server**: Nginx + PHP-FPM via `serversideup/php` container
-- **Frontend Architecture**: Blade Views, Reusable Blade Components, Vanilla JavaScript
-- **Styling**: Vanilla CSS Design System with accessible WCAG AAA compliant color tokens
-- **Testing**: PHPUnit / Pest Test Suite with 80+ automated feature and unit tests
-
----
-
-## Data Model & Schema
+## Step 1: Understand the Project Structure
 
 ```
-Users ──────────────────< Role Assignments >───────────── Roles
-  │                                │
-  │ creates / holds                │ scopes to Area / Installation
-  ▼                                ▼
-Indents ──────────────< Installations >──────── Areas
-  │
-  ├───< Movements (Workflow audit history)
-  ├───< Indent Participants (Access control)
-  ├───< Attachments (Private files)
-  └───  Indent Sequences (Atomic counter)
+docker-project-template/
+├── .env.example          # Template for environment variables
+├── .env                  # Your local config (created from .env.example)
+├── Dockerfile            # Production image build instructions
+├── docker-compose.yml    # Development stack definition
+├── docker-compose.prod.yml  # Production stack definition
+└── src/                  # Your Laravel application lives here
+    ├── artisan
+    ├── public/
+    ├── app/
+    └── ...
 ```
 
-### Core Entities
+### Services in the Stack
 
-- **`indents`**: Work title, description, category, target installation, priority (`Low`, `Medium`, `High`, `Urgent`), required-by date, justification, status (`Open`, `Assigned`, `InProgress`, `Closed`), draft flag, rejection flag, creator CPF, current holder CPF.
-- **`movements`**: Transition history tracking `indent_id`, `from` CPF, `from_role`, `to` CPF, `to_role`, `action`, `is_rejected`, and `remark`.
-- **`indent_participants`**: Record of every CPF who has created, received, or forwarded the indent (controls view authorization).
-- **`attachments`**: Files uploaded during drafting or review movements, stored on private disks with sanitized naming and metadata.
-- **`role_assignments`**: Binds a user CPF to a role with optional `installation_id` or `area_id` scoping.
-- **`audit_logs`**: Chronological log of administrative actions (role grants and revocations).
+| Service | Image | Default Port | Purpose |
+|---|---|---|---|
+| **app** | `serversideup/php:<PHP_VERSION>-fpm-nginx` | `APP_PORT` (8000) | Laravel web app with Nginx + PHP-FPM |
+| **queue** | same as app | — | Background queue worker (`php artisan queue:work`) |
+| **mysql** | `mysql:8.0` | `MYSQL_PORT` (3307) | MySQL database |
+| **redis** | `redis:7.2-alpine` | — | Cache, queue broker, and sessions |
+
+### Optional Services (enabled via `--profile`)
+
+| Service | Profile | Default Port | Purpose |
+|---|---|---|---|
+| **phpmyadmin** | `tools` | `PMA_PORT` (8081) | Database management UI |
+| **soketi** | `realtime` | `SOKETI_PORT` (6001) | Pusher-compatible WebSocket server |
+| **cloudflared** | `tunnel` | — | Expose the app publicly via Cloudflare Tunnel |
+| **watchtower** | `autoupdate` (prod) | — | Auto-pull new CI-built Docker images |
 
 ---
 
-## Quick Start with Docker
+## Step 2: Install Prerequisites
 
-The project includes an optimized Docker Compose stack for instant local deployment.
+Make sure the following are installed on your machine:
 
-### 1. Clone Repository & Setup Environment
+- [ ] **Docker Desktop** — [Download here](https://www.docker.com/products/docker-desktop/)
+- [ ] **Git** — [Download here](https://git-scm.com/)
+- [ ] **Composer** (optional, for creating a new Laravel project locally)
+
+> **Tip:** On Windows, ensure Docker Desktop is set to use **Linux containers** (the default).
+
+---
+
+## Step 3: Initial Setup
+
+### 3.1 — Clone or copy the template
 
 ```bash
-git clone https://github.com/rathodromit-51/Civil-Indent-Portal.git
-cd Civil-Indent-Portal
+cp -r docker-project-template my-new-project
+cd my-new-project
+```
+
+### 3.2 — Create your `.env` file
+
+```bash
 cp .env.example .env
 ```
 
-### 2. Start Containers
+Then edit `.env` and set your values:
+
+```env
+# Give your project a unique name (used for container names)
+PROJECT_NAME=civil-indent-portal
+COMPOSE_PROJECT_NAME=civil-indent-portal
+
+# PHP version: use 8.2 for Laravel 10/11, or 8.4 for Laravel 12+
+PHP_VERSION=8.4
+
+# Host ports (change if they conflict with other services)
+APP_PORT=8000
+MYSQL_PORT=3307
+
+# Database credentials
+DB_DATABASE=app
+DB_PASSWORD=root_password
+```
+
+### 3.3 — Add your Laravel app to `src/`
+
+**Option A — Fresh Laravel install:**
+
+```bash
+composer create-project laravel/laravel src
+```
+
+**Option B — Existing project:**
+
+Copy your Laravel project files into `./src/` so that `./src/artisan` and `./src/public/` exist.
+
+### 3.4 — Initialize Git
+
+```bash
+git init
+```
+
+---
+
+## Step 4: Start the Development Stack
+
+Open Docker Desktop, wait for it to fully start, then run:
 
 ```bash
 docker compose up -d --build
 ```
 
-### 3. Initialize Application
+**What this does:**
 
-Run database migrations, seeders, and storage configuration inside the container:
-
-```bash
-docker compose exec app php artisan migrate --seed
-docker compose exec app php artisan storage:link
-```
-
-### 4. Access the Portal
-
-- **Web Application**: [http://localhost:8000](http://localhost:8000)
-- **Database Management (optional)**: [http://localhost:8081](http://localhost:8081) (`--profile tools`)
+1. **Pulls** the required images (`serversideup/php`, `mysql:8.0`, `redis:7.2-alpine`)
+2. **Builds** the app container with your PHP version
+3. **Starts** all 4 core services (app, queue, mysql, redis)
+4. **Bind-mounts** `./src` into the containers — code changes reflect instantly
+5. **Auto-runs** Laravel migrations, seeders, and storage link (via the `AUTORUN_*` env vars)
 
 ---
 
-## Local Development Setup
+## Step 5: Verify Everything Is Running
 
-If running without Docker:
-
-### Prerequisites
-
-- PHP >= 8.2 with PDO, cURL, OpenSSL, MBString, GD extensions
-- Composer 2.x
-- MySQL 8.0 or SQLite
-- Node.js (optional, frontend assets are pure CSS)
-
-### Installation Steps
+### 5.1 — Check container status
 
 ```bash
-# 1. Install Composer dependencies
-cd src
-composer install
+docker compose ps
+```
 
-# 2. Configure environment
-cp .env.example .env
-php artisan key:generate
+You should see all 4 services with status `Up`:
 
-# 3. Configure Database in .env (MySQL or SQLite)
-# Example SQLite:
-# DB_CONNECTION=sqlite
-# DB_DATABASE=/path/to/database.sqlite
+```
+NAME                          STATUS
+civil-indent-portal_app       Up
+civil-indent-portal_queue     Up
+civil-indent-portal_mysql     Up
+civil-indent-portal_redis     Up
+```
 
-# 4. Run Migrations & Seeders
-php artisan migrate:fresh --seed
+### 5.2 — Open the app in your browser
 
-# 5. Link Storage Disk
-php artisan storage:link
+Visit: **http://localhost:8000** (or whatever `APP_PORT` you set)
 
-# 6. Start Local Server
-php artisan serve
+### 5.3 — Check the logs if something isn't working
+
+```bash
+docker compose logs -f app
 ```
 
 ---
 
-## Pre-Seeded Accounts & Role Directory
+## Step 6: Common Day-to-Day Commands
 
-In development mode (`AUTH_MODE=dev`), the portal authenticates via `DevAuthenticator`. Any seeded CPF logs in using the default password: **`secret123`**.
-
-| CPF | Name | Active Role | Scope | Designation |
-| :--- | :--- | :--- | :--- | :--- |
-| `ADMIN001` | Super Admin | **ADMIN** | Organization-wide | Head of Systems Administration |
-| `USER001` | Ramesh Sharma | **USER** | General | Assistant Engineer (Civil) |
-| `USER002` | Suresh Kumar | **USER** | General | Junior Engineer (Maintenance) |
-| `USER003` | Priya Patel | **USER** | General | Operations Coordinator |
-| `IM001` | Vikram Mehta | **IM** | Vadodara Plant 1 | Installation Manager (Site Head) |
-| `SAM001` | Anita Desai | **SAM** | Vadodara Asset | Section Area Manager |
-| `SM001` | Rajesh Nair | **SM** | Vadodara Asset | Surface Manager |
-| `HES001` | Sanjay Joshi | **HES** | Organization-wide | Head of Engineering Services |
-| `LMW001` | Manisha Rao | **LMW** | Organization-wide | Line Manager (Works) |
-| `ICO001` | Arvind Singh | **ICO** | Vadodara Plant 1 | In-Charge Operations |
-| `CE001` | Deepak Patel | **CE** | Vadodara Plant 1 | Civil Engineer (Site Lead) |
-
----
-
-## Testing & Quality Assurance
-
-The codebase features comprehensive feature and unit test coverage verifying business logic, authorization policies, single-holder constraints, strict workflow sequencing, query optimization, and UI rendering.
+### Start / Stop the stack
 
 ```bash
-# Run all tests
-php artisan test
+# Start all services in the background
+docker compose up -d
 
-# Run specific test suites
-php artisan test --filter=IndentForwardTest
-php artisan test --filter=StrictWorkflowTest
-php artisan test --filter=IndentDetailAndTimelineTest
-php artisan test --filter=UserRoleTest
+# Stop all services (data is preserved in volumes)
+docker compose down
+
+# Stop and DELETE all data (databases, redis, etc.)
+docker compose down -v
 ```
 
-### Key Tested Scenarios
+### Run Artisan commands
 
-- **FRIND-04 Compliance**: Verifies that submitted indents become immutable to edits or deletion by any party.
-- **Strict Role Sequence**: Validates forward actions follow the mandatory chain of command and prevents role jumping.
-- **Access Control & Privacy**: Verifies that strangers receive HTTP `403 Forbidden` while all past participants can view the indent.
-- **N+1 Prevention**: Verified with query logging to guarantee page queries remain strictly bounded (&le; 25 total database queries per full page render).
-- **Audit Logs**: Confirms every role assignment and revocation is captured in audit logs with actor, recipient, and scope details.
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app php artisan tinker
+docker compose exec app php artisan optimize:clear
+docker compose exec app php artisan make:model Post -m
+```
+
+### Run Composer commands
+
+```bash
+docker compose exec app composer install
+docker compose exec app composer require laravel/sanctum
+```
+
+### Run npm commands (if Node is in the image)
+
+```bash
+docker compose exec app npm install
+docker compose exec app npm run dev
+```
+
+### Access the app container shell
+
+```bash
+docker compose exec app bash
+```
+
+### View logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f app
+docker compose logs -f mysql
+docker compose logs -f queue
+```
+
+### Rebuild after Dockerfile or compose changes
+
+```bash
+docker compose up -d --build
+```
 
 ---
 
-## Security & Authorization Policies
+## Step 7: Enable Optional Services
 
-The application adheres to defensive design standards:
+Optional services use Docker Compose **profiles**. Add the `--profile` flag to enable them:
 
-1. **Gate & Policy Enforcement**:
-   - `IndentPolicy@view`: Restricted to the creator, current holder, or any recorded participant in `indent_participants`.
-   - `IndentPolicy@update`: Restricted strictly to drafts owned by the authenticated creator.
-   - `IndentPolicy@forward`: Restricted strictly to the current active holder.
-   - `IndentPolicy@updateStatus`: Restricted exclusively to assigned Civil Engineers (`CE`) holding the indent.
-   - `RolePolicy`: Prevents administrators from modifying or deleting their own roles.
-2. **Single-Holder Role Verification**: Prevents assigning single-holder roles (e.g., `IM`, `SAM`, `SM`) if another active user currently holds that role within the target scope.
-3. **Private File Disk**: Uploaded attachments are never exposed in public directories; downloads are authorized through authenticated streaming endpoints with validated MIME types.
+### phpMyAdmin (Database UI)
+
+```bash
+docker compose --profile tools up -d
+```
+
+Then open: **http://localhost:8081**
+
+### Soketi (WebSocket Server)
+
+```bash
+docker compose --profile realtime up -d
+```
+
+Configure your Laravel `.env` (`src/.env`):
+
+```env
+BROADCAST_DRIVER=pusher
+PUSHER_APP_ID=app
+PUSHER_APP_KEY=app-key
+PUSHER_APP_SECRET=app-secret
+PUSHER_HOST=localhost
+PUSHER_PORT=6001
+PUSHER_SCHEME=http
+```
+
+### Cloudflare Tunnel (Public Access)
+
+1. Create a tunnel in the [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Add the tunnel token to your `.env`:
+   ```env
+   CLOUDFLARE_TUNNEL_TOKEN=your-token-here
+   ```
+3. Configure public hostnames in the dashboard:
+   - `app.example.com` → `http://app:8080`
+   - `ws.example.com` → `http://soketi:6001` (optional)
+4. Start the tunnel:
+   ```bash
+   docker compose --profile tunnel up -d
+   ```
+
+### Enable multiple profiles at once
+
+```bash
+docker compose --profile tools --profile realtime --profile tunnel up -d
+```
+
+> **Important:** When stopping, include the same `--profile` flags:
+> ```bash
+> docker compose --profile tools --profile tunnel down
+> ```
 
 ---
 
-## Design System & UI
+## Step 8: Deploy to Production
 
-The portal features an enterprise design system adhering to strict corporate aesthetic standards:
+### 8.1 — Build the production image (via CI or locally)
 
-- **Icon & Emoji-Free Interface**: Clean, professional typography with zero casual emojis or decorative icons.
-- **Accessible Palette**: Standardized Slate neutrals (`#0f172a`, `#64748b`, `#e2e8f0`, `#f8fafc`) paired with WCAG AAA compliant semantic tints:
-  - **Open**: Emerald (`#047857` on `#ecfdf5`)
-  - **Assigned / Forward**: Blue (`#1d4ed8` on `#eff6ff`)
-  - **In Progress**: Purple (`#6b21a8` on `#f3e8ff`)
-  - **Closed**: Slate (`#475569` on `#f1f5f9`)
-  - **Draft**: Amber (`#92400e` on `#fef3c7`)
-  - **Rejected / Urgent**: Red (`#b91c1c` on `#fee2e2`)
-- **Responsive Layout**: Fluid flex and grid layouts optimized for desktop workstations, tablets, and field mobile devices.
+```bash
+docker build -t ghcr.io/<org>/<repo>/app:main .
+docker push ghcr.io/<org>/<repo>/app:main
+```
+
+A GitHub Actions workflow is provided at `.github/workflows/docker-publish.yml`.
+
+### 8.2 — Configure the production `.env`
+
+```env
+APP_IMAGE=ghcr.io/<org>/<repo>/app:main
+DB_PASSWORD=<strong-production-password>
+# For private registries:
+REGISTRY_USER=<github-username>
+REGISTRY_TOKEN=<github-pat-with-read:packages>
+```
+
+### 8.3 — Start the production stack
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+### 8.4 — Enable auto-update (optional)
+
+Watchtower will auto-pull new images when CI pushes them:
+
+```bash
+docker compose -f docker-compose.prod.yml --profile autoupdate up -d
+```
 
 ---
 
-## License
+## Step 9: Troubleshooting
 
-This project is proprietary and confidential. Developed for organizational civil maintenance requisition and workflow governance.
+### "Port already in use"
+
+Change the conflicting port in `.env`:
+
+```env
+APP_PORT=8080    # instead of 8000
+MYSQL_PORT=3308  # instead of 3307
+```
+
+Then restart: `docker compose up -d`
+
+### "Permission denied" on storage/
+
+The app container's entrypoint automatically fixes permissions. If issues persist:
+
+```bash
+docker compose exec app chown -R www-data:www-data /var/www/html/storage
+docker compose exec app chmod -R 775 /var/www/html/storage
+```
+
+### Database connection refused
+
+1. Make sure the `mysql` container is running: `docker compose ps`
+2. Check that `src/.env` uses the Docker-internal host:
+   ```env
+   DB_HOST=mysql
+   DB_PORT=3306
+   ```
+   > The compose file sets these automatically via environment variables that override `src/.env`.
+
+### Containers keep restarting
+
+Check the logs for the failing service:
+
+```bash
+docker compose logs --tail=50 app
+```
+
+### Reset everything from scratch
+
+```bash
+docker compose down -v          # removes containers AND volumes (all data)
+docker compose up -d --build    # fresh start
+```
+
+---
+
+## Quick Reference
+
+| What you want to do | Command |
+|---|---|
+| Start dev stack | `docker compose up -d --build` |
+| Stop dev stack | `docker compose down` |
+| View logs | `docker compose logs -f app` |
+| Run artisan | `docker compose exec app php artisan <command>` |
+| Open shell | `docker compose exec app bash` |
+| Add phpMyAdmin | `docker compose --profile tools up -d` |
+| Start production | `docker compose -f docker-compose.prod.yml up -d` |
+| Nuke everything | `docker compose down -v` |
