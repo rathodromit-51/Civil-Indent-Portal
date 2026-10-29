@@ -5,82 +5,18 @@
 @push('styles')
     <style>
         .show-wrapper {
-            max-width: 960px;
+            max-width: 1200px;
             margin: 0 auto 40px;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .badge-draft {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-        }
-
-        .badge-open {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
-        }
-
-        .badge-assigned {
-            background: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
-        }
-
-        .badge-inprogress {
-            background: #f3e8ff;
-            color: #6b21a8;
-            border: 1px solid #d8b4fe;
-        }
-
-        .badge-closed {
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-        }
-
-        .badge-priority-urgent {
-            background: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fca5a5;
-        }
-
-        .badge-priority-high {
-            background: #ffedd5;
-            color: #c2410c;
-            border: 1px solid #fed7aa;
-        }
-
-        .badge-priority-medium {
-            background: #eff6ff;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
-        }
-
-        .badge-priority-low {
-            background: #f8fafc;
-            color: #475569;
-            border: 1px solid #e2e8f0;
         }
 
         .meta-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+            background: var(--surface-subtle);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
             margin-bottom: 24px;
         }
 
@@ -90,18 +26,18 @@
         }
 
         .meta-label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             color: var(--text-muted);
             letter-spacing: 0.05em;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 4px;
         }
 
         .meta-value {
             font-size: 0.95rem;
             font-weight: 600;
-            color: var(--text-color);
+            color: var(--text-primary);
         }
 
         .timeline {
@@ -117,7 +53,7 @@
             bottom: 8px;
             left: 8px;
             width: 2px;
-            background: #e2e8f0;
+            background: var(--border);
         }
 
         .timeline-item {
@@ -132,9 +68,9 @@
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #2563eb;
+            background: var(--primary);
             border: 3px solid #ffffff;
-            box-shadow: 0 0 0 1px #cbd5e1;
+            box-shadow: 0 0 0 1px var(--border);
         }
     </style>
 @endpush
@@ -153,7 +89,7 @@
                         {{ $indent->title }}
                     </h1>
                     <span
-                        style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: var(--primary); background: #eff6ff; padding: 2px 10px; border-radius: 6px; border: 1px solid #bfdbfe;">
+                        style="font-family: monospace; font-size: 1rem; font-weight: 700; color: var(--primary); background: var(--surface-subtle); padding: 2px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
                         {{ $indent->number }}
                     </span>
                 </div>
@@ -182,31 +118,38 @@
         {{-- Rejection Flag Alert Banner --}}
         @if($indent->is_rejected)
             @php $rejectionMvt = $indent->latestRejectionMovement(); @endphp
-            <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.08);">
+            <div
+                style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 10px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.08);">
                 <div style="display: flex; align-items: flex-start; gap: 14px;">
                     <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                             <strong style="color: #991b1b; font-size: 1.05rem;">
-                                Indent Flagged & Rejected by {{ $rejectionMvt?->fromUser?->name ?? $rejectionMvt?->from ?? 'Management Authority' }}
+                                Indent Flagged & Rejected by
+                                {{ $rejectionMvt?->fromUser?->name ?? $rejectionMvt?->from ?? 'Management Authority' }}
                                 @if($rRole = $rejectionMvt?->fromUser?->roleAssignment?->role?->name)
-                                    <span class="badge" style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-size: 0.75rem; margin-left: 6px;">
+                                    <span class="badge"
+                                        style="background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; font-size: 0.75rem; margin-left: 6px;">
                                         {{ $rRole }}
                                     </span>
                                 @endif
                             </strong>
                             @if($rejectionMvt)
                                 <span style="font-size: 0.8rem; color: #b91c1c; font-weight: 600;">
-                                    {{ $rejectionMvt->created_at->format('d M Y, H:i') }} ({{ $rejectionMvt->created_at->diffForHumans() }})
+                                    {{ $rejectionMvt->created_at->format('d M Y, H:i') }}
+                                    ({{ $rejectionMvt->created_at->diffForHumans() }})
                                 </span>
                             @endif
                         </div>
                         @if($rejectionMvt?->remark)
-                            <div style="margin-top: 10px; background: white; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 14px; color: #7f1d1d; font-size: 0.9rem;">
+                            <div
+                                style="margin-top: 10px; background: white; border: 1px solid #fecaca; border-radius: 6px; padding: 10px 14px; color: #7f1d1d; font-size: 0.9rem;">
                                 <strong>Mandatory Rejection Reason:</strong> {{ $rejectionMvt->remark }}
                             </div>
                         @endif
                         <p style="color: #b91c1c; font-size: 0.8rem; margin-top: 8px; margin-bottom: 0;">
-                            This indent remains active and open for rectification. Please review the comments, update technical scope/attachments if needed, and resubmit.
+                            This indent remains active and open for rectification. Please review the comments, update technical
+                            scope/attachments if needed, and resubmit.
                         </p>
                     </div>
                 </div>
@@ -218,7 +161,8 @@
             <div class="meta-item">
                 <span class="meta-label">Lifecycle Status</span>
                 <span class="meta-value" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                    <x-status-badge :status="$indent->status" :isDraft="$indent->is_draft" :isRejected="$indent->is_rejected" />
+                    <x-status-badge :status="$indent->status" :isDraft="$indent->is_draft"
+                        :isRejected="$indent->is_rejected" />
                 </span>
             </div>
 
@@ -255,10 +199,12 @@
                 <span class="meta-value" style="display: flex; flex-direction: column; gap: 4px;">
                     <div>
                         {{ $indent->creator?->name ?? $indent->creator_cpf }}
-                        <span style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->creator_cpf }})</span>
+                        <span
+                            style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->creator_cpf }})</span>
                     </div>
                     @if($cRole = ($indent->creator?->roleAssignment?->role?->name ?? $indent->creator?->designation))
-                        <span class="badge" style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
+                        <span class="badge"
+                            style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
                             {{ $cRole }}
                         </span>
                     @endif
@@ -273,10 +219,12 @@
                     @else
                         <div>
                             {{ $indent->currentHolder?->name ?? $indent->current_holder_cpf }}
-                            <span style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->current_holder_cpf }})</span>
+                            <span
+                                style="font-family: monospace; font-size: 0.75rem; color: #64748b;">({{ $indent->current_holder_cpf }})</span>
                         </div>
                         @if($hRole = ($indent->currentHolder?->roleAssignment?->role?->name ?? $indent->currentHolder?->designation))
-                            <span class="badge" style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
+                            <span class="badge"
+                                style="background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; font-size: 0.72rem; align-self: flex-start; padding: 1px 8px;">
                                 {{ $hRole }}
                             </span>
                         @endif
@@ -288,13 +236,13 @@
         {{-- Technical Scope & Specifications Card --}}
         <div class="card"
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
-            <h2
-                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
                 Technical Scope of Work
             </h2>
             @if($indent->description)
                 <div style="font-size: 0.9rem; line-height: 1.6; color: #334155; white-space: pre-wrap;">
-                    {{ $indent->description }}</div>
+                    {{ $indent->description }}
+                </div>
             @else
                 <div style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">No technical scope provided.</div>
             @endif
@@ -303,13 +251,13 @@
         {{-- Operational Justification Card --}}
         <div class="card"
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
-            <h2
-                style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
+            <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 12px;">
                 Operational & Safety Justification
             </h2>
             @if($indent->justification)
                 <div style="font-size: 0.9rem; line-height: 1.6; color: #334155; white-space: pre-wrap;">
-                    {{ $indent->justification }}</div>
+                    {{ $indent->justification }}
+                </div>
             @else
                 <div style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">No operational justification specified.
                 </div>
@@ -321,8 +269,7 @@
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h2
-                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
                     Attached Documents & Drawings
                 </h2>
                 <span
@@ -340,7 +287,8 @@
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 16px; border-radius: 8px; flex-wrap: wrap; gap: 12px;">
                             <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                <span style="font-size: 0.72rem; font-weight: 700; font-family: monospace; background: #e2e8f0; color: #334155; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.05em;">{{ $ext }}</span>
+                                <span
+                                    style="font-size: 0.72rem; font-weight: 700; font-family: monospace; background: #e2e8f0; color: #334155; padding: 4px 8px; border-radius: 4px; letter-spacing: 0.05em;">{{ $ext }}</span>
                                 <div style="min-width: 0;">
                                     <div style="font-weight: 600; color: #0f172a; font-size: 0.9rem; word-break: break-all;">
                                         {{ $att->original_name }}
@@ -391,8 +339,7 @@
                         @csrf
                         <div
                             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
-                            <span
-                                style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">
+                            <span style="font-size: 0.875rem; font-weight: 700; color: #1e293b;">
                                 Attach Files to this Indent
                             </span>
                             <span style="font-size: 0.75rem; color: #64748b;">
@@ -432,51 +379,66 @@
         @can('updateStatus', $indent)
             <div id="ce-execution-panel" class="card"
                 style="background: #f0fdf4; border: 2px solid #16a34a; padding: 24px; border-radius: 10px; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.1);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #bbf7d0; padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #bbf7d0; padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <div>
                         <h2 style="font-size: 1.25rem; font-weight: 700; color: #166534; margin: 0;">
                             Site Execution Panel (Civil Engineer)
                         </h2>
                         <p style="font-size: 0.825rem; color: #15803d; margin-top: 4px; margin-bottom: 0;">
-                            You are the assigned on-site Civil Engineer (<strong>{{ Auth::user()->name }}</strong>). Manage execution milestones below.
+                            You are the assigned on-site Civil Engineer (<strong>{{ Auth::user()->name }}</strong>). Manage
+                            execution milestones below.
                         </p>
                     </div>
-                    <span class="badge" style="background: #16a34a; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">
-                        Current State: {{ method_exists($indent->status, 'label') ? $indent->status->label() : ($indent->status->value ?? $indent->status ?? 'Open') }}
+                    <span class="badge"
+                        style="background: #16a34a; color: white; padding: 4px 12px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">
+                        Current State:
+                        {{ method_exists($indent->status, 'label') ? $indent->status->label() : ($indent->status->value ?? $indent->status ?? 'Open') }}
                     </span>
                 </div>
 
                 <form action="{{ route('indents.status.update', $indent) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 8px;">
+                        <label
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 8px;">
                             Select Next Milestone Action <span style="color: #dc2626;">*</span>:
                         </label>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                             @if($indent->status === \App\Enums\IndentStatus::OPEN)
-                                <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #86efac; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
-                                    <input type="radio" name="status" value="Assigned" checked style="accent-color: #16a34a; width: 18px; height: 18px;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #86efac; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
+                                    <input type="radio" name="status" value="Assigned" checked
+                                        style="accent-color: #16a34a; width: 18px; height: 18px;">
                                     <div>
-                                        <div style="font-weight: 700; color: #166534; font-size: 0.9rem;">1. Accept Indent Work</div>
+                                        <div style="font-weight: 700; color: #166534; font-size: 0.9rem;">1. Accept Indent Work
+                                        </div>
                                         <div style="font-size: 0.75rem; color: #4b5563;">Accept task and take site ownership</div>
                                     </div>
                                 </label>
                             @endif
 
                             @if(in_array($indent->status, [\App\Enums\IndentStatus::OPEN, \App\Enums\IndentStatus::ASSIGNED]))
-                                <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
-                                    <input type="radio" name="status" value="InProgress" {{ $indent->status === \App\Enums\IndentStatus::ASSIGNED ? 'checked' : '' }} style="accent-color: #2563eb; width: 18px; height: 18px;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #93c5fd; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
+                                    <input type="radio" name="status" value="InProgress" {{ $indent->status === \App\Enums\IndentStatus::ASSIGNED ? 'checked' : '' }}
+                                        style="accent-color: #2563eb; width: 18px; height: 18px;">
                                     <div>
-                                        <div style="font-weight: 700; color: #1e40af; font-size: 0.9rem;">2. Start Physical Work</div>
-                                        <div style="font-size: 0.75rem; color: #4b5563;">Mobilize contractor & materials on site</div>
+                                        <div style="font-weight: 700; color: #1e40af; font-size: 0.9rem;">2. Start Physical Work
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: #4b5563;">Mobilize contractor & materials on site
+                                        </div>
                                     </div>
                                 </label>
                             @endif
 
-                            <label style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #d8b4fe; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
-                                <input type="radio" name="status" value="Closed" {{ $indent->status === \App\Enums\IndentStatus::IN_PROGRESS ? 'checked' : '' }} style="accent-color: #7c3aed; width: 18px; height: 18px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 10px; background: white; border: 2px solid #d8b4fe; border-radius: 8px; padding: 12px 16px; cursor: pointer;">
+                                <input type="radio" name="status" value="Closed" {{ $indent->status === \App\Enums\IndentStatus::IN_PROGRESS ? 'checked' : '' }}
+                                    style="accent-color: #7c3aed; width: 18px; height: 18px;">
                                 <div>
-                                    <div style="font-weight: 700; color: #6b21a8; font-size: 0.9rem;">3. Complete & Handover</div>
+                                    <div style="font-weight: 700; color: #6b21a8; font-size: 0.9rem;">3. Complete & Handover
+                                    </div>
                                     <div style="font-size: 0.75rem; color: #4b5563;">Finish physical work and close indent</div>
                                 </div>
                             </label>
@@ -484,7 +446,8 @@
                     </div>
 
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 6px;">
+                        <label
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 6px;">
                             Work Progress / Site Execution Remarks:
                         </label>
                         <textarea name="remark" rows="3" class="form-control"
@@ -493,7 +456,8 @@
                     </div>
 
                     <div style="margin-bottom: 16px;">
-                        <label style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 6px;">
+                        <label
+                            style="display: block; font-size: 0.875rem; font-weight: 600; color: #14532d; margin-bottom: 6px;">
                             Attach Inspection Photos, Measurement Sheets or Completion Reports:
                         </label>
                         <input type="file" name="attachments[]" multiple class="form-control"
@@ -515,8 +479,7 @@
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <h2
-                            style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 0;">
                             Workflow Actions: Forward or Return
                         </h2>
                         <p style="font-size: 0.825rem; color: #64748b; margin-top: 4px; margin-bottom: 0;">
@@ -550,10 +513,13 @@
                             $nextRole = $indent->getNextExpectedRole();
                         @endphp
                         @if($nextRole)
-                            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div
+                                style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-size: 0.85rem; color: #1e40af; font-weight: 600;">Next in Workflow Sequence:</span>
-                                    <span class="badge" style="background: #2563eb; color: #ffffff; padding: 3px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.8rem;">
+                                    <span style="font-size: 0.85rem; color: #1e40af; font-weight: 600;">Next in Workflow
+                                        Sequence:</span>
+                                    <span class="badge"
+                                        style="background: #2563eb; color: #ffffff; padding: 3px 10px; border-radius: 9999px; font-weight: 700; font-size: 0.8rem;">
                                         {{ $nextRole }}
                                     </span>
                                 </div>
@@ -619,9 +585,11 @@
                                         onchange="toggleRejectionReason(this.checked)"
                                         style="width: 18px; height: 18px; margin-top: 2px; accent-color: #dc2626;">
                                     <div>
-                                        <strong style="color: #92400e; font-size: 0.9rem;">Forward with Rejection / Concerns</strong>
+                                        <strong style="color: #92400e; font-size: 0.9rem;">Forward with Rejection /
+                                            Concerns</strong>
                                         <p style="font-size: 0.8rem; color: #b45309; margin-top: 2px; margin-bottom: 0;">
-                                            As a management authority (IM, SAM, SM), you may reject this indent. Rejection reason is mandatory. The file will be flagged and returned.
+                                            As a management authority (IM, SAM, SM), you may reject this indent. Rejection reason is
+                                            mandatory. The file will be flagged and returned.
                                         </p>
                                     </div>
                                 </label>
@@ -720,8 +688,7 @@
             style="background: white; border: 1px solid var(--border-color); padding: 24px; border-radius: 8px; margin-bottom: 20px;">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                <h2
-                    style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
+                <h2 style="font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0;">
                     Workflow Movements & Forwarding History
                 </h2>
                 <span
@@ -871,23 +838,23 @@
                         item.onmouseout = () => item.style.background = 'white';
 
                         item.innerHTML = `
-                    <div>
-                        <div style="font-weight: 600; color: #0f172a; font-size: 0.875rem;">
-                            ${user.name} <span style="font-family: monospace; font-size: 0.775rem; color: #64748b;">(${user.cpf})</span>
+                        <div>
+                            <div style="font-weight: 600; color: #0f172a; font-size: 0.875rem;">
+                                ${user.name} <span style="font-family: monospace; font-size: 0.775rem; color: #64748b;">(${user.cpf})</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+                                ${user.designation} &bull; ${user.location}
+                            </div>
                         </div>
-                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
-                            ${user.designation} &bull; ${user.location}
+                        <div style="text-align: right;">
+                            <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.75rem;">
+                                ${user.role}
+                            </span>
+                            <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">
+                                ${user.scope || ''}
+                            </div>
                         </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 0.75rem;">
-                            ${user.role}
-                        </span>
-                        <div style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">
-                            ${user.scope || ''}
-                        </div>
-                    </div>
-                `;
+                    `;
 
                         item.onclick = () => selectRecipient(user);
                         dropdown.appendChild(item);

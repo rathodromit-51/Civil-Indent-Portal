@@ -21,33 +21,33 @@
 
     $displayLabel = match ($statusNormalized) {
         'inprogress' => 'In Progress',
-        'closed' => 'Closed',
+        'closed' => 'Completed',
         'assigned' => 'Assigned',
         'open' => 'Open',
         default => $statusVal,
     };
 
-    $badgeClass = match ($statusNormalized) {
-        'open' => 'badge-open',
-        'assigned' => 'badge-assigned',
-        'inprogress' => 'badge-inprogress',
-        'closed' => 'badge-closed',
-        default => 'badge-open',
+    $badgeStyle = match ($statusNormalized) {
+        'open' => 'background: #ECFDF5; color: #047857; border-color: #A7F3D0;',
+        'assigned' => 'background: #F0F4F8; color: #16324F; border-color: #CBD5E1;',
+        'inprogress' => 'background: #F5F3FF; color: #6D28D9; border-color: #DDD6FE;',
+        'closed' => 'background: #F1F5F9; color: #475569; border-color: #CBD5E1;',
+        default => 'background: #ECFDF5; color: #047857; border-color: #A7F3D0;',
     };
 @endphp
 
 @if($isDraft)
-    <span class="badge badge-draft">
-        Draft (Editable)
+    <span class="badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border);">
+        Draft
     </span>
 @else
-    <span class="badge {{ $badgeClass }}">
+    <span class="badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; border: 1px solid; {{ $badgeStyle }}">
         {{ $displayLabel }}
     </span>
 
     @if($isRejected)
-        <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; margin-left: 4px;">
-            Flagged (Rejected)
+        <span class="badge" style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); margin-left: 4px;">
+            Rejected
         </span>
     @endif
 @endif

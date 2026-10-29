@@ -16,7 +16,7 @@ class AuthController extends Controller
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('indents.inbox');
+            return redirect()->route('dashboard');
         }
 
         return view('auth.login');
@@ -47,7 +47,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('indents.inbox'));
+        return redirect()->intended(route('dashboard'));
     }
 
     /**

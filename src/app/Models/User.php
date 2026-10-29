@@ -42,13 +42,34 @@ class User extends Authenticatable
         return $this->hasOne(RoleAssignment::class, 'cpf', 'cpf');
     }
 
+    protected ?RoleAssignment $memoizedRoleAssignment = null;
+    protected bool $memoizedRoleAssignmentLoaded = false;
+
+    /**
+     * Get or cache the role assignment with relations for the current request.
+     */
+    public function activeRoleAssignment(): ?RoleAssignment
+    {
+        if (! $this->memoizedRoleAssignmentLoaded) {
+            $this->memoizedRoleAssignment = $this->relationLoaded('roleAssignment')
+                ? $this->getRelation('roleAssignment')
+                : $this->roleAssignment()->with(['role', 'area', 'installation'])->first();
+            $this->memoizedRoleAssignmentLoaded = true;
+        }
+
+        return $this->memoizedRoleAssignment;
+    }
+
     /**
      * Check if user is Super Admin.
      */
     public function isSuperAdmin(): bool
     {
-        return $this->designation === 'Super Admin'
-            || optional($this->roleAssignment?->role)->name === 'Super Admin';
+        if ($this->designation === 'Super Admin') {
+            return true;
+        }
+
+        return optional($this->activeRoleAssignment()?->role)->name === 'Super Admin';
     }
 
     /**
@@ -56,7 +77,7 @@ class User extends Authenticatable
      */
     public function hasRole(string|array $roles): bool
     {
-        $roleName = $this->roleAssignment?->role?->name;
+        $roleName = $this->activeRoleAssignment()?->role?->name;
         if (! $roleName) {
             return false;
         }
@@ -77,7 +98,7 @@ class User extends Authenticatable
      */
     public function activeRole(): ?Role
     {
-        return $this->roleAssignment?->role;
+        return $this->activeRoleAssignment()?->role;
     }
 
     /**
@@ -85,7 +106,7 @@ class User extends Authenticatable
      */
     public function assignedArea(): ?Area
     {
-        return $this->roleAssignment?->area;
+        return $this->activeRoleAssignment()?->area;
     }
 
     /**
@@ -93,7 +114,7 @@ class User extends Authenticatable
      */
     public function assignedInstallation(): ?Installation
     {
-        return $this->roleAssignment?->installation;
+        return $this->activeRoleAssignment()?->installation;
     }
 
     /**

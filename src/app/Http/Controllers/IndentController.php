@@ -117,7 +117,7 @@ class IndentController extends Controller
         // Counts for tab badges
         $myCount = Indent::where('creator_cpf', $user->cpf)->count();
         $myDraftsCount = Indent::where('creator_cpf', $user->cpf)->drafts()->count();
-        $mySubmittedCount = Indent::where('creator_cpf', $user->cpf)->published()->count();
+        $mySubmittedCount = max(0, $myCount - $myDraftsCount);
         $withMeCount = Indent::withMe($user->cpf)->count();
         $flaggedCount = Indent::where(function ($q) use ($user) {
             $q->where('creator_cpf', $user->cpf)

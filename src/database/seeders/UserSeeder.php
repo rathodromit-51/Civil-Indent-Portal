@@ -227,7 +227,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            User::updateOrCreate(
+            User::firstOrCreate(
                 ['cpf' => $userData['cpf']],
                 $userData
             );

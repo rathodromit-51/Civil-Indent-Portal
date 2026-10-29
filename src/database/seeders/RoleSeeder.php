@@ -246,29 +246,26 @@ class RoleSeeder extends Seeder
             ],
         ];
 
-        // Always ensure Super Admin has the Super Admin role assigned
-        RoleAssignment::firstOrCreate(
-            ['cpf' => 'ADMIN001'],
-            [
-                'role_id' => $roleModels['Super Admin']->id,
-                'area_id' => null,
-                'installation_id' => null,
-                'assigned_by' => 'ADMIN001',
-            ]
-        );
-
-        // Only populate initial sample role assignments on a fresh install (when table only has <= 1 assignment)
-        // This ensures any manual assignments or role revocations made by an administrator are preserved.
-        if (RoleAssignment::count() <= 1) {
+        // Only seed initial sample role assignments on a completely fresh database
+        // Once any assignments exist, manual assignments, reassignments, or revocations are preserved.
+        if (RoleAssignment::count() === 0) {
             foreach ($assignments as $assignData) {
-                if ($assignData['cpf'] === 'ADMIN001') {
-                    continue;
-                }
                 RoleAssignment::firstOrCreate(
                     ['cpf' => $assignData['cpf']],
                     $assignData
                 );
             }
+        } else {
+            // Ensure Super Admin retains access if missing
+            RoleAssignment::firstOrCreate(
+                ['cpf' => 'ADMIN001'],
+                [
+                    'role_id' => $roleModels['Super Admin']->id,
+                    'area_id' => null,
+                    'installation_id' => null,
+                    'assigned_by' => 'ADMIN001',
+                ]
+            );
         }
     }
 }
